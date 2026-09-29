@@ -477,11 +477,14 @@ window.FIREBASE_CONFIG={apiKey:"AIzaSyAVuKn3OKNVgaxj6164Wp7qMOQHb-jRDXE",authDom
   <div id="authOverlay"><div class="aubox">
     <div class="chips" style="justify-content:center;margin-bottom:.9rem"><button class="chip" id="tab-reg" onclick="authTab('reg')">Registrarse</button><button class="chip" id="tab-login" onclick="authTab('login')">Iniciar sesión</button></div>
     <h3 id="au-title"></h3>
+    <p id="au-hint" style="display:none;color:var(--muted);font-size:.88rem;margin-bottom:.6rem;line-height:1.35"></p>
     <input id="au-name" type="text" placeholder="Tu nombre (solo esta vez)" autocomplete="given-name" maxlength="24">
     <input id="au-mail" type="email" placeholder="Correo electrónico" autocomplete="email">
     <input id="au-pw" type="password" placeholder="Contraseña (mín. 6 caracteres)" autocomplete="current-password">
     <div id="au-msg"></div>
     <button class="btn btn-primary" id="au-go" onclick="authGo()" style="width:100%;justify-content:center"></button>
+    <button class="btn btn-back" id="au-forgot" onclick="authTab('reset')" style="width:100%;justify-content:center;margin-top:.5rem;display:none">¿Olvidaste tu contraseña?</button>
+    <button class="btn btn-back" id="au-back-login" onclick="authTab('login')" style="width:100%;justify-content:center;margin-top:.5rem;display:none">← Volver a iniciar sesión</button>
     <button class="btn btn-back" onclick="authSkip()" style="width:100%;justify-content:center;margin-top:.5rem">Jugar sin cuenta</button>
   </div></div>
   <div id="roundbar"><span id="rb-info"></span><button class="btn btn-primary" onclick="finishRound()">🏁 Terminar</button></div>
@@ -1411,14 +1414,39 @@ $('acct').style.cursor='pointer';
 $('acct').onclick=()=>{if(acct)firebase.auth().signOut();else{authTab('login');$('authOverlay').style.display='flex';}};
 window.authTab=m=>{
   $('authOverlay').dataset.m=m;
-  $('tab-reg').classList.toggle('active',m==='reg');$('tab-login').classList.toggle('active',m==='login');
-  $('au-title').textContent=m==='reg'?'¡Bienvenido! Crea tu cuenta':'Inicia sesión';
+  $('tab-reg').classList.toggle('active',m==='reg');
+  $('tab-login').classList.toggle('active',m==='login');
+  const isReset=m==='reset';
+  $('au-title').textContent=m==='reg'?'¡Bienvenido! Crea tu cuenta':isReset?'Recuperar contraseña':'Inicia sesión';
   $('au-name').style.display=m==='reg'?'block':'none';
-  $('au-go').textContent=m==='reg'?'Crear cuenta':'Entrar';$('au-msg').textContent='';
+  $('au-pw').style.display=isReset?'none':'block';
+  $('au-hint').style.display=isReset?'block':'none';
+  $('au-hint').textContent=isReset?'Te enviaremos un correo. Si fuiste tú, abre el enlace y elige una contraseña nueva. Si no fuiste tú, ignóralo.':'';
+  $('au-go').textContent=m==='reg'?'Crear cuenta':isReset?'Enviar correo':'Entrar';
+  $('au-forgot').style.display=m==='login'?'block':'none';
+  $('au-back-login').style.display=isReset?'block':'none';
+  $('au-msg').textContent='';
+  $('au-msg').style.color='';
 };
 window.authGo=async()=>{
   const m=$('authOverlay').dataset.m,email=$('au-mail').value.trim().toLowerCase(),pw=$('au-pw').value,name=$('au-name').value.trim(),msg=$('au-msg');
+  msg.style.color='';
   if(!/^\S+@\S+\.\S+$/.test(email)){msg.textContent='Escribe un correo válido.';return;}
+  if(m==='reset'){
+    if(!firebase.auth){msg.textContent='No se pudo conectar con el servicio de cuentas.';return;}
+    try{
+      await firebase.auth().sendPasswordResetEmail(email);
+      msg.style.color='var(--success)';
+      msg.textContent='Listo. Revisa tu correo: si fuiste tú, abre el enlace y cambia la contraseña. Si no, ignóralo.';
+    }catch(e){
+      const c=e.code||'';
+      if(c==='auth/user-not-found')msg.textContent='No hay una cuenta con ese correo.';
+      else if(c==='auth/invalid-email')msg.textContent='Correo no válido.';
+      else if(c==='auth/too-many-requests')msg.textContent='Demasiados intentos. Espera un rato.';
+      else msg.textContent='No se pudo enviar el correo. Revisa la configuración de Firebase (authDomain y plantilla de correo).';
+    }
+    return;
+  }
   if(pw.length<6){msg.textContent='La contraseña debe tener al menos 6 caracteres.';return;}
   try{
     if(m==='reg'){
