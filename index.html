@@ -255,6 +255,7 @@ window.FIREBASE_CONFIG={apiKey:"AIzaSyAVuKn3OKNVgaxj6164Wp7qMOQHb-jRDXE",authDom
   <header>
     <div class="logo">Taller de Matemáticas</div>
     <p class="subtitle">Operaciones · Potencias · Raíces · f(x) · Función Afín</p>
+    <p class="subtitle" style="margin-top:.15rem;font-weight:700;background:linear-gradient(135deg,#fd79a8,#fdcb6e,#00cec9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Javiera Oyarzun la goat 🐐</p>
   </header>
   <div id="modebar">
     <div class="chips">
@@ -1280,7 +1281,7 @@ const MAXLV={ops:6,func:5,pow:5,seq:5,cmp:5,plane:3};
 const GM={ops:['ops',()=>ops,()=>updateOpsUI()],func:['func',()=>func,()=>updateFuncUI()],pow:['pow',()=>pow,()=>updatePowUI()],seq:['seq',()=>seq,()=>updateSeqUI()],cmp:['cmp',()=>cmp,()=>updateCmpUI()],plane:['pl',()=>pl,()=>updPl()]};
 function gate(k){
   if(mode!=='classic'||cur!==k)return true;
-  if(qn>=50||SC[k]()>=1500){finishRound();return false;}
+  if(qn>=50||SC[k]()>=1500){window.finishRound();return false;}
   qn++;const g=GM[k],o=g[1]();o.level=Math.min(MAXLV[k],Math.ceil(qn/10));g[2]();upd();
   document.querySelectorAll('#'+g[0]+'-levels .level-btn').forEach((b,i)=>b.classList.toggle('active',i+1===o.level));
   return true;
@@ -1289,14 +1290,50 @@ function gate(k){
 ['ops','func','pow','cmp','seq'].forEach(k=>{
   const n='next'+k[0].toUpperCase()+k.slice(1),f=window[n];
   window[n]=function(){if(!gate(k))return;f();
-    if(mode!=='classic'&&cur===k){clearAllTimers();const e=$(k+'-timer');
-      if(e){e.style.setProperty('--p','100%');e.querySelector('span').textContent=mode==='clock'?'⏱':'∞';}}};
+    if(mode!=='classic'&&cur===k){clearAllTimers();syncTimerRing();}};
 });
 
-function resetRound(){clearInterval(clk);$('roundbar').style.display='none';$('endOverlay').style.display='none';}
-function upd(){$('rb-info').textContent=mode==='clock'?'⏱ '+left+' s':mode==='classic'?'Pregunta '+qn+'/50':MODES[mode];}
-function startRound(){$('roundbar').style.display='flex';left=60;upd();
-  if(mode==='clock')clk=setInterval(()=>{left--;upd();if(left<=0)finishRound();},1000);}
+function syncTimerRing(){
+  if(!cur||cur==='mem'||cur==='plane'||cur==='board')return;
+  const e=$(cur+'-timer');
+  if(!e)return;
+  if(mode==='clock'){
+    const max=60;
+    e.style.setProperty('--p',(Math.max(0,left)/max)*100+'%');
+    e.querySelector('span').textContent=Math.max(0,left);
+  }else if(mode==='relaxed'){
+    e.style.setProperty('--p','100%');
+    e.querySelector('span').textContent='∞';
+  }
+}
+
+function resetRound(){if(clk){clearInterval(clk);clk=null;}$('roundbar').style.display='none';$('endOverlay').style.display='none';}
+function upd(){
+  if(mode==='clock'){
+    $('rb-info').textContent='⏱ '+Math.max(0,left)+' s';
+    syncTimerRing();
+  }else if(mode==='classic'){
+    $('rb-info').textContent='Pregunta '+qn+'/50';
+  }else{
+    $('rb-info').textContent=MODES[mode];
+  }
+}
+function startRound(){
+  if(clk){clearInterval(clk);clk=null;}
+  $('roundbar').style.display='flex';
+  left=60;
+  upd();
+  if(mode==='clock'){
+    clk=setInterval(()=>{
+      left--;
+      upd();
+      if(left<=0){
+        if(clk){clearInterval(clk);clk=null;}
+        window.finishRound();
+      }
+    },1000);
+  }
+}
 
 const sg=window.startGame,bm=window.backToMenu;
 window.startGame=id=>{
@@ -1324,9 +1361,15 @@ async function saveScore(g,m,s){
   }catch(e){return 'No se pudo guardar (¿tienes permiso de colaborador?).';}
 }
 window.finishRound=async()=>{
-  if(fin||!SC[cur])return;fin=true;clearInterval(clk);clearAllTimers();
-  const s=Math.min(SC[cur](),mode==='classic'?1500:1e9);$('end-score').textContent=s;$('end-msg').textContent='Guardando…';
-  $('endOverlay').style.display='flex';$('end-msg').textContent=await saveScore(cur,mode,s);
+  if(fin||!SC[cur])return;
+  fin=true;
+  if(clk){clearInterval(clk);clk=null;}
+  clearAllTimers();
+  const s=Math.min(SC[cur](),mode==='classic'?1500:1e9);
+  $('end-score').textContent=s;
+  $('end-msg').textContent='Guardando…';
+  $('endOverlay').style.display='flex';
+  $('end-msg').textContent=await saveScore(cur,mode,s);
 };
 
 // ---------- Ranking ----------
@@ -1461,7 +1504,7 @@ window.checkPlane=()=>{
     fb.textContent='¡Bien! ✔';fb.className='feedback good';
     confettiBurst(innerWidth/2,300);updPl();
     if(mode==='clock')setTimeout(()=>{if(!fin)newPlane();},1500);
-    else if(mode==='classic'&&(qn>=50||pl.score>=1500))setTimeout(finishRound,1200);
+    else if(mode==='classic'&&(qn>=50||pl.score>=1500))setTimeout(()=>window.finishRound(),1200);
   }else{
     pl.streak=0;updPl();fb.className='feedback bad';
     fb.textContent=`Tabla ${t}/5 · Plano ${good}/5`+(extra?` · ${extra} punto(s) de más`:'');
