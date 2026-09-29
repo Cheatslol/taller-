@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Taller de Matemáticas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f1225;
+      --card: #232a4a;
+      --accent: #6c5ce7;
+      --accent2: #00cec9;
+      --accent3: #fd79a8;
+      --accent4: #fdcb6e;
+      --success: #00b894;
+      --danger: #e17055;
+      --text: #f5f6fa;
+      --muted: #a0a8c8;
+      --radius: 18px;
+      --shadow: 0 12px 40px rgba(0,0,0,.35);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nunito', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image:
+        radial-gradient(ellipse at 20% 20%, rgba(108,92,231,.25) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(0,206,201,.18) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(253,121,168,.08) 0%, transparent 60%);
+    }
+    header { text-align: center; padding: 2rem 1.5rem 1.2rem; }
+    .logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      font-weight: 700;
+      background: linear-gradient(135deg, #a29bfe, #00cec9, #fd79a8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: glow 3s ease-in-out infinite alternate;
+    }
+    @keyframes glow {
+      from { filter: drop-shadow(0 0 8px rgba(108,92,231,.4)); }
+      to { filter: drop-shadow(0 0 20px rgba(0,206,201,.5)); }
+    }
+    .subtitle { color: var(--muted); font-size: 1.05rem; margin-top: .4rem; }
+
+    #menu {
+      max-width: 1100px; margin: 0 auto; padding: 1rem 1.5rem 3rem;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.3rem;
+    }
+    .game-card {
+      background: var(--card); border-radius: var(--radius); padding: 1.7rem 1.4rem;
+      cursor: pointer; transition: transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .25s;
+      border: 1px solid rgba(255,255,255,.06); position: relative; overflow: hidden; box-shadow: var(--shadow);
+    }
+    .game-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,.04)); pointer-events: none;
+    }
+    .game-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 20px 50px rgba(108,92,231,.25); }
+    .game-card .icon { font-size: 2.5rem; margin-bottom: .7rem; display: block; animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+    .game-card h3 { font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; margin-bottom: .35rem; }
+    .game-card p { color: var(--muted); font-size: .9rem; line-height: 1.4; }
+    .badge {
+      display: inline-block; margin-top: .8rem; font-size: .72rem; font-weight: 700;
+      padding: .22rem .65rem; border-radius: 999px; background: rgba(108,92,231,.25); color: #a29bfe;
+    }
+
+    .screen { display: none; max-width: 720px; margin: 0 auto; padding: 1rem 1.5rem 3rem; animation: fadeIn .4s ease; }
+    .screen.active { display: block; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.4rem; flex-wrap: wrap; gap: .7rem; }
+    .btn {
+      border: none; border-radius: 12px; padding: .65rem 1.2rem; font-family: inherit; font-weight: 700;
+      font-size: .92rem; cursor: pointer; transition: transform .15s, box-shadow .15s; display: inline-flex; align-items: center; gap: .35rem;
+    }
+    .btn:active { transform: scale(.96); }
+    .btn-back { background: rgba(255,255,255,.08); color: var(--text); }
+    .btn-back:hover { background: rgba(255,255,255,.14); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #a29bfe); color: white;
+      box-shadow: 0 6px 20px rgba(108,92,231,.4);
+    }
+    .stats { display: flex; gap: .8rem; flex-wrap: wrap; }
+    .stat { background: rgba(255,255,255,.06); padding: .4rem .9rem; border-radius: 999px; font-size: .88rem; font-weight: 600; }
+    .stat span { color: var(--accent2); }
+
+    .level-select { display: flex; gap: .55rem; justify-content: center; margin-bottom: 1.6rem; flex-wrap: wrap; }
+    .level-btn {
+      width: 46px; height: 46px; border-radius: 13px; border: 2px solid rgba(255,255,255,.12);
+      background: var(--card); color: var(--text); font-weight: 800; font-size: 1.05rem; cursor: pointer; transition: all .2s;
+    }
+    .level-btn:hover, .level-btn.active {
+      border-color: var(--accent2); background: rgba(0,206,201,.15); transform: scale(1.08);
+      box-shadow: 0 0 18px rgba(0,206,201,.3);
+    }
+
+    .question-box {
+      background: var(--card); border-radius: var(--radius); padding: 2rem 1.4rem; text-align: center;
+      margin-bottom: 1.4rem; box-shadow: var(--shadow); position: relative; overflow: hidden;
+    }
+    .equation {
+      font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.7rem, 7vw, 3rem); font-weight: 700;
+      letter-spacing: 1px; margin-bottom: 1.1rem; min-height: 1.2em;
+    }
+    .equation.pop { animation: pop .4s cubic-bezier(.34,1.56,.64,1); }
+    @keyframes pop { 0%{transform:scale(.7);opacity:.5} 70%{transform:scale(1.08)} 100%{transform:scale(1);opacity:1} }
+
+    .options { display: grid; grid-template-columns: 1fr 1fr; gap: .85rem; max-width: 420px; margin: 0 auto; }
+    .opt-btn {
+      background: rgba(255,255,255,.07); border: 2px solid rgba(255,255,255,.1); border-radius: 14px;
+      padding: .95rem; font-size: 1.3rem; font-weight: 700; color: var(--text); cursor: pointer;
+      transition: all .2s; font-family: 'Space Grotesk', sans-serif;
+    }
+    .opt-btn:hover { background: rgba(108,92,231,.2); border-color: var(--accent); transform: translateY(-3px); }
+    .opt-btn.correct { background: rgba(0,184,148,.25); border-color: var(--success); animation: correctPulse .5s; }
+    .opt-btn.wrong { background: rgba(225,112,85,.25); border-color: var(--danger); animation: shake .4s; }
+    @keyframes correctPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
+
+    .feedback { margin-top: 1.1rem; font-size: 1.1rem; font-weight: 700; min-height: 1.5em; }
+    .feedback.good { color: var(--success); }
+    .feedback.bad { color: var(--danger); }
+
+    .progress-wrap { height: 8px; background: rgba(255,255,255,.08); border-radius: 99px; overflow: hidden; margin-bottom: 1.4rem; }
+    .progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 99px; width: 0%; transition: width .4s ease; }
+
+    .timer-ring {
+      width: 54px; height: 54px; border-radius: 50%;
+      background: conic-gradient(var(--accent2) var(--p, 100%), rgba(255,255,255,.1) 0);
+      display: grid; place-items: center; font-weight: 800; font-size: .92rem;
+    }
+    .timer-ring span { background: var(--card); width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; }
+
+    /* Secuencias */
+    .seq-container { display: flex; gap: .65rem; justify-content: center; flex-wrap: wrap; margin: 1.4rem 0; }
+    .seq-box {
+      width: 60px; height: 60px; border-radius: 13px; background: rgba(255,255,255,.08);
+      border: 2px solid rgba(255,255,255,.12); display: grid; place-items: center;
+      font-family: 'Space Grotesk', sans-serif; font-size: 1.3rem; font-weight: 700; transition: all .3s;
+    }
+    .seq-box.missing { border-style: dashed; border-color: var(--accent3); background: rgba(253,121,168,.1); animation: pulseBorder 1.5s infinite; }
+    @keyframes pulseBorder { 0%,100%{box-shadow:0 0 0 0 rgba(253,121,168,.4)} 50%{box-shadow:0 0 0 8px rgba(253,121,168,0)} }
+
+    /* Memory */
+    .memory-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .65rem; max-width: 440px; margin: 0 auto; }
+    .mem-card {
+      aspect-ratio: 1; border-radius: 13px; background: var(--card); border: 2px solid rgba(255,255,255,.1);
+      cursor: pointer; display: grid; place-items: center; font-weight: 700; font-family: 'Space Grotesk', sans-serif;
+      transition: transform .35s; transform-style: preserve-3d; position: relative; user-select: none;
+    }
+    .mem-card .front, .mem-card .back {
+      position: absolute; inset: 0; display: grid; place-items: center; backface-visibility: hidden;
+      border-radius: 11px; padding: .25rem; text-align: center; font-size: clamp(.7rem, 2.4vw, .95rem);
+    }
+    .mem-card .front { background: linear-gradient(145deg, #2d3561, #1e2442); }
+    .mem-card .back { background: linear-gradient(145deg, #6c5ce7, #00cec9); transform: rotateY(180deg); color: white; }
+    .mem-card.flipped { transform: rotateY(180deg); }
+    .mem-card.matched { opacity: .45; pointer-events: none; transform: rotateY(180deg) scale(.92); }
+
+    /* Comparación */
+    .compare-nums {
+      display: flex; align-items: center; justify-content: center; gap: 1.1rem; margin: 1.4rem 0;
+      font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.7rem, 6vw, 2.8rem); font-weight: 700;
+    }
+    .cmp-btns { display: flex; gap: .9rem; justify-content: center; flex-wrap: wrap; }
+    .cmp-btn {
+      width: 76px; height: 76px; border-radius: 18px; border: none; font-size: 2.1rem; font-weight: 800;
+      cursor: pointer; transition: transform .2s; font-family: 'Space Grotesk', sans-serif;
+    }
+    .cmp-btn:hover { transform: scale(1.1); }
+    .cmp-btn.lt { background: linear-gradient(135deg, #74b9ff, #0984e3); color: white; }
+    .cmp-btn.eq { background: linear-gradient(135deg, #fdcb6e, #e17055); color: #2d1a00; }
+    .cmp-btn.gt { background: linear-gradient(135deg, #55efc4, #00b894); color: #003d2e; }
+
+    /* Función info */
+    .func-hint {
+      background: rgba(108,92,231,.15); border: 1px solid rgba(108,92,231,.3);
+      border-radius: 12px; padding: .7rem 1rem; margin-bottom: 1rem; font-size: .9rem; color: #c5bfff;
+    }
+
+    .confetti {
+      position: fixed; pointer-events: none; z-index: 9999; width: 10px; height: 10px; border-radius: 2px;
+    }
+
+    .particles { position: fixed; inset: 0; pointer-events: none; z-index: -1; overflow: hidden; }
+    .particle {
+      position: absolute; width: 4px; height: 4px; border-radius: 50%; background: rgba(162,155,254,.4);
+      animation: rise linear infinite;
+    }
+    @keyframes rise {
+      0% { transform: translateY(100vh) scale(0); opacity: 0; }
+      10% { opacity: 1; } 90% { opacity: 1; }
+      100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+    }
+
+    @media (max-width: 480px) {
+      .options { grid-template-columns: 1fr; }
+      .memory-grid { grid-template-columns: repeat(3, 1fr); }
+      .seq-box { width: 50px; height: 50px; font-size: 1.1rem; }
+    }
+
+    :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+    html{scroll-padding-top:env(safe-area-inset-top,0px)}
+    body{padding-bottom:72px}
+    #modebar{max-width:1100px;margin:0 auto;padding:0 1.5rem;display:flex;gap:.6rem;flex-wrap:wrap;justify-content:space-between}
+    .chips{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+    .chip{border:2px solid rgba(255,255,255,.12);background:var(--card);color:var(--text);border-radius:999px;padding:.45rem .9rem;font:700 .85rem Nunito,sans-serif;cursor:pointer}
+    .chip.active{border-color:var(--accent2);background:rgba(0,206,201,.15)}
+    .acct{cursor:default;color:var(--muted);max-width:60vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    #roundbar{position:fixed;left:0;right:0;bottom:0;z-index:50;display:none;justify-content:space-between;align-items:center;gap:.6rem;padding:.6rem 1rem calc(.6rem + env(safe-area-inset-bottom,0px));background:rgba(15,18,37,.94);border-top:1px solid rgba(255,255,255,.1);font-weight:800}
+    #endOverlay{position:fixed;inset:0;z-index:9000;display:none;align-items:center;justify-content:center;background:rgba(10,12,28,.88);padding:1rem}
+    .endbox{background:var(--card);border-radius:var(--radius);padding:1.6rem;text-align:center;max-width:340px;width:100%}
+    .endbox .big{font:700 3rem 'Space Grotesk',sans-serif;color:var(--accent2)}
+    .endbox p{color:var(--muted);margin:.5rem 0 1rem}.endbox .btn{margin:.25rem}
+    #pl-svg{width:100%;max-width:400px;background:#161b36;border-radius:14px;touch-action:manipulation;display:block;margin:1rem auto;cursor:crosshair}
+    .gl{stroke:rgba(255,255,255,.1)}.gl.ax{stroke:rgba(255,255,255,.55);stroke-width:1.6}.tk{fill:var(--muted);font-size:10px;text-anchor:middle}
+    .pl-table{border-collapse:collapse;margin:0 auto;width:100%;max-width:400px}
+    .pl-table th,.pl-table td{border:1px solid rgba(255,255,255,.15);padding:.35rem;text-align:center;font:700 1.05rem 'Space Grotesk',sans-serif}
+    .pl-table input{width:100%;background:transparent;border:0;color:var(--text);text-align:center;font:inherit;outline:0}
+    .pl-table input.ok{color:var(--success)}.pl-table input.bad{color:var(--danger)}
+    .pl-btns{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
+    #authOverlay{position:fixed;inset:0;z-index:9500;display:none;align-items:center;justify-content:center;background:rgba(10,12,28,.92);padding:1rem}
+    .aubox{background:var(--card);border-radius:var(--radius);padding:1.6rem 1.4rem;max-width:360px;width:100%;text-align:center;box-shadow:var(--shadow)}
+    .aubox h3{font-family:'Space Grotesk',sans-serif;margin-bottom:.4rem}.aubox p{color:var(--muted);font-size:.9rem;margin-bottom:1rem}
+    .aubox input{width:100%;margin:.3rem 0;padding:.75rem .9rem;border-radius:12px;border:2px solid rgba(255,255,255,.12);background:var(--bg);color:var(--text);font:600 1rem Nunito,sans-serif}
+    .aubox input:focus{outline:0;border-color:var(--accent2)}
+    #au-msg{color:var(--danger);min-height:1.3em;font-size:.88rem;margin:.4rem 0;font-weight:700}
+    .lb-filters{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem}
+    .lb-filters select{flex:1;min-width:130px;background:var(--bg);color:var(--text);border:2px solid rgba(255,255,255,.12);border-radius:12px;padding:.55rem;font:600 .9rem Nunito,sans-serif}
+    .lb-row{display:flex;gap:.7rem;align-items:center;padding:.6rem .8rem;border-radius:12px;font-weight:700}
+    .lb-row:nth-child(odd){background:rgba(255,255,255,.04)}.lb-row.me{background:rgba(108,92,231,.3)}
+    .lb-row .n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lb-row .s{color:var(--accent2)}
+  </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+// PEGA AQUÍ los datos de tu proyecto de Firebase (Configuración del proyecto > Tus apps > Web)
+window.FIREBASE_CONFIG={apiKey:"PEGA_AQUI",authDomain:"PEGA_AQUI",projectId:"PEGA_AQUI",appId:"PEGA_AQUI"};
+</script>
+</head>
+<body>
+  <div class="particles" id="particles"></div>
+
+  <header>
+    <div class="logo">Taller de Matemáticas</div>
+    <p class="subtitle">Operaciones · Potencias · Raíces · f(x) · Función Afín</p>
+  </header>
+  <div id="modebar">
+    <div class="chips">
+      <button class="chip" data-m="clock" onclick="setMode('clock')">⏱ Contra reloj</button>
+      <button class="chip" data-m="relaxed" onclick="setMode('relaxed')">😌 Sin presión</button>
+      <button class="chip active" data-m="classic" onclick="setMode('classic')">🎯 Clásico</button>
+    </div>
+    <div class="chips">
+      <button class="chip" onclick="startGame('board')">🏆 Ranking</button>
+      <span class="chip acct" id="acct">🔒 Sin sesión</span>
+      <button class="chip" id="del" style="display:none" onclick="delAcct()">🗑 Eliminar cuenta</button>
+    </div>
+  </div>
+
+  <!-- MENÚ -->
+  <div id="menu">
+    <div class="game-card" onclick="startGame('ops')">
+      <span class="icon">🧮</span>
+      <h3>Operaciones Avanzadas</h3>
+      <p>+ − × ÷ · potencias · raíces. Todos los niveles con dificultad creciente.</p>
+      <span class="badge">6 niveles</span>
+    </div>
+    <div class="game-card" onclick="startGame('func')">
+      <span class="icon">📐</span>
+      <h3>Funciones f(x) y Afín</h3>
+      <p>Evalúa f(x), reconoce la función afín y = mx + b. Pendiente e intercepto.</p>
+      <span class="badge">f(x) · Afín</span>
+    </div>
+    <div class="game-card" onclick="startGame('pow')">
+      <span class="icon">⚡</span>
+      <h3>Potencias y Raíces</h3>
+      <p>Calcula potencias, raíces cuadradas y cúbicas. Entrena cálculo mental.</p>
+      <span class="badge">aⁿ · √x</span>
+    </div>
+    <div class="game-card" onclick="startGame('seq')">
+      <span class="icon">🔢</span>
+      <h3>Secuencias Numéricas</h3>
+      <p>Descubre el patrón y completa el número que falta.</p>
+      <span class="badge">Patrones</span>
+    </div>
+    <div class="game-card" onclick="startGame('mem')">
+      <span class="icon">🃏</span>
+      <h3>Memoria Matemática</h3>
+      <p>Empareja operación con resultado (incluye potencias).</p>
+      <span class="badge">Parejas</span>
+    </div>
+    <div class="game-card" onclick="startGame('cmp')">
+      <span class="icon">⚖️</span>
+      <h3>Mayor, Menor o Igual</h3>
+      <p>Compara números, potencias y expresiones.</p>
+      <span class="badge">Comparación</span>
+    </div>
+    <div class="game-card" onclick="startGame('plane')">
+      <span class="icon">📈</span>
+      <h3>Plano cartesiano</h3>
+      <p>Completa la tabla x/y, toca el plano para ubicar los puntos y comprueba la recta.</p>
+      <span class="badge">Tabla · Gráfico</span>
+    </div>
+  </div>
+
+  <!-- OPERACIONES -->
+  <div id="screen-ops" class="screen">
+    <div class="top-bar">
+      <button class="btn btn-back" onclick="backToMenu()">← Menú</button>
+      <div class="stats">
+        <div class="stat">Nivel <span id="ops-level">1</span></div>
+        <div class="stat">Puntos <span id="ops-score">0</span></div>
+        <div class="stat">Racha <span id="ops-streak">0</span></div>
+      </div>
+      <div class="timer-ring" id="ops-timer"><span>15</span></div>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" id="ops-progress"></div></div>
+    <div class="level-select" id="ops-levels"></div>
+    <div class="question-box">
+      <div class="equation" id="ops-eq">?</div>
+      <div class="options" id="ops-options"></div>
+      <div class="feedback" id="ops-feedback"></div>
+    </div>
+  </div>
+
+  <!-- FUNCIONES f(x) y AFÍN -->
+  <div id="screen-func" class="screen">
+    <div class="top-bar">
+      <button class="btn btn-back" onclick="backToMenu()">← Menú</button>
+      <div class="stats">
+        <div class="stat">Nivel <span id="func-level">1</span></div>
+        <div class="stat">Puntos <span id="func-score">0</span></div>
+        <div class="stat">Racha <span id="func-streak">0</span></div>
+      </div>
+      <div class="timer-ring" id="func-timer"><span>18</span></div>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" id="func-progress"></div></div>
+    <div class="level-select" id="func-levels"></div>
+    <div class="question-box">
+      <div class="func-hint" id="func-hint">f(x) = mx + b  →  función afín</div>
+      <div class="equation" id="func-eq">?</div>
+      <div class="options" id="func-options"></div>
+      <div class="feedback" id="func-feedback"></div>
+    </div>
+  </div>
+
+  <!-- POTENCIAS Y RAÍCES -->
+  <div id="screen-pow" class="screen">
+    <div class="top-bar">
+      <button class="btn btn-back" onclick="backToMenu()">← Menú</button>
+      <div class="stats">
+        <div class="stat">Nivel <span id="pow-level">1</span></div>
+        <div class="stat">Puntos <span id="pow-score">0</span></div>
+        <div class="stat">Racha <span id="pow-streak">0</span></div>
+      </div>
+      <div class="timer-ring" id="pow-timer"><span>14</span></div>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" id="pow-progress"></div></div>
+    <div class="level-select" id="pow-levels"></div>
+    <div class="question-box">
+      <div class="equation" id="pow-eq">?</div>
+      <div class="options" id="pow-options"></div>
+      <div class="feedback" id="pow-feedback"></div>
+    </div>
+  </div>
+
+  <!-- SECUENCIAS -->
+  <div id="screen-seq" class="screen">
+    <div class="top-bar">
+      <button class="btn btn-back" onclick="backToMenu()">← Menú</button>
+      <div class="stats">
+        <div class="stat">Nivel <span id="seq-level">1</span></div>
+        <div class="stat">Puntos <span id="seq-score">0</span></div>
+      </div>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" id="seq-progress"></div></div>
+    <div class="level-select" id="seq-levels"></div>
+    <div class="question-box">
+      <p style="color:var(--muted);margin-bottom:.5rem">¿Qué número falta?</p>
+      <div class="seq-container" id="seq-boxes"></div>
+      <div class="options" id="seq-options"></div>
+      <div class="feedback" id="seq-feedback"></div>
+    </div>
+  </div>
+
+  <!-- MEMORIA -->
+  <div id="screen-mem" class="screen">
+    <div class="top-bar">
+      <button class="btn btn-back" onclick="backToMenu()">← Menú</button>
+      <div class="stats">
+        <div class="stat">Movimientos <span id="mem-moves">0</span></div>
+        <div class="stat">Parejas <span id="mem-pairs">0</span>/8</div>
+      </div>
+    </div>
+    <div class="level-select" id="mem-levels"></div>
+    <div class="memory-grid" id="mem-grid"></div>
+    <div style="text-align:center;margin-top:1.5rem">
+      <button class="btn btn-primary" onclick="initMemory()">🔄 Reiniciar</button>
+    </div>
+  </div>
+
+  <!-- COMPARACIÓN -->
+  <div id="screen-cmp" class="screen">
+    <div class="top-bar">
+      <button class="btn btn-back" onclick="backToMenu()">← Menú</button>
+      <div class="stats">
+        <div class="stat">Nivel <span id="cmp-level">1</span></div>
+        <div class="stat">Puntos <span id="cmp-score">0</span></div>
+        <div class="stat">Racha <span id="cmp-streak">0</span></div>
+      </div>
+      <div class="timer-ring" id="cmp-timer"><span>12</span></div>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" id="cmp-progress"></div></div>
+    <div class="level-select" id="cmp-levels"></div>
+    <div class="question-box">
+      <div class="compare-nums" id="cmp-nums">
+        <span id="cmp-left">10</span>
+        <span style="color:var(--muted);font-size:1.4rem">?</span>
+        <span id="cmp-right">7</span>
+      </div>
+      <div class="cmp-btns">
+        <button class="cmp-btn lt" onclick="answerCmp('<')">&lt;</button>
+        <button class="cmp-btn eq" onclick="answerCmp('=')">=</button>
+        <button class="cmp-btn gt" onclick="answerCmp('>')">&gt;</button>
+      </div>
+      <div class="feedback" id="cmp-feedback"></div>
+    </div>
+  </div>
+
+  <div id="screen-plane" class="screen">
+    <div class="top-bar">
+      <button class="btn btn-back" onclick="backToMenu()">← Menú</button>
+      <div class="stats">
+        <div class="stat">Nivel <span id="pl-level">1</span></div>
+        <div class="stat">Puntos <span id="pl-score">0</span></div>
+        <div class="stat">Racha <span id="pl-streak">0</span></div>
+      </div>
+    </div>
+    <div class="level-select" id="pl-levels"></div>
+    <div class="question-box">
+      <div class="equation" id="pl-eq"></div>
+      <table id="pl-table" class="pl-table"></table>
+      <svg id="pl-svg" viewBox="0 0 400 400"></svg>
+      <div class="stat">Puntos <span id="pl-count">0</span>/5</div>
+      <div class="feedback" id="pl-fb"></div>
+      <div class="pl-btns">
+        <button class="btn btn-primary" onclick="checkPlane()">✔ Comprobar</button>
+        <button class="btn btn-back" onclick="newPlane()">Siguiente ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="screen-board" class="screen">
+    <div class="top-bar">
+      <button class="btn btn-back" onclick="backToMenu()">← Menú</button>
+      <div class="stat" id="lb-status"></div>
+    </div>
+    <div class="question-box" style="text-align:left">
+      <div class="lb-filters"><select id="lb-game" onchange="renderBoard()"></select><select id="lb-mode" onchange="renderBoard()"></select></div>
+      <div id="lb-list"></div>
+    </div>
+  </div>
+
+  <div id="authOverlay"><div class="aubox">
+    <div class="chips" style="justify-content:center;margin-bottom:.9rem"><button class="chip" id="tab-reg" onclick="authTab('reg')">Registrarse</button><button class="chip" id="tab-login" onclick="authTab('login')">Iniciar sesión</button></div>
+    <h3 id="au-title"></h3>
+    <input id="au-name" type="text" placeholder="Tu nombre (solo esta vez)" autocomplete="given-name" maxlength="24">
+    <input id="au-mail" type="email" placeholder="Correo electrónico" autocomplete="email">
+    <input id="au-pw" type="password" placeholder="Contraseña (mín. 6 caracteres)" autocomplete="current-password">
+    <div id="au-msg"></div>
+    <button class="btn btn-primary" id="au-go" onclick="authGo()" style="width:100%;justify-content:center"></button>
+    <button class="btn btn-back" onclick="authSkip()" style="width:100%;justify-content:center;margin-top:.5rem">Jugar sin cuenta</button>
+  </div></div>
+  <div id="roundbar"><span id="rb-info"></span><button class="btn btn-primary" onclick="finishRound()">🏁 Terminar</button></div>
+  <div id="endOverlay"><div class="endbox">
+    <h3>¡Ronda terminada!</h3><div class="big" id="end-score">0</div><p id="end-msg"></p>
+    <button class="btn btn-primary" onclick="viewRank()">🏆 Ranking</button>
+    <button class="btn btn-back" onclick="again()">↻ Otra vez</button>
+    <button class="btn btn-back" onclick="backToMenu()">Menú</button>
+  </div></div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const rand = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+    const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
+
+    function confettiBurst(x, y) {
+      const colors = ['#6c5ce7','#00cec9','#fd79a8','#fdcb6e','#55efc4','#74b9ff'];
+      for (let i = 0; i < 26; i++) {
+        const c = document.createElement('div');
+        c.className = 'confetti';
+        c.style.left = x + 'px'; c.style.top = y + 'px';
+        c.style.background = colors[rand(0, colors.length - 1)];
+        c.style.width = rand(6, 11) + 'px'; c.style.height = rand(6, 11) + 'px';
+        document.body.appendChild(c);
+        const dx = (Math.random() - 0.5) * 200;
+        const dy = -Math.random() * 180 - 40;
+        c.animate([
+          { transform: 'translate(0,0) rotate(0deg)', opacity: 1 },
+          { transform: `translate(${dx}px,${dy}px) rotate(${rand(180,720)}deg)`, opacity: 0 }
+        ], { duration: 900 + rand(0,400), easing: 'cubic-bezier(.2,.8,.3,1)' });
+        setTimeout(() => c.remove(), 1400);
+      }
+    }
+
+    function createParticles() {
+      const cont = $('particles');
+      for (let i = 0; i < 22; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.animationDuration = (8 + Math.random() * 12) + 's';
+        p.style.animationDelay = (Math.random() * 10) + 's';
+        p.style.opacity = 0.2 + Math.random() * 0.35;
+        cont.appendChild(p);
+      }
+    }
+    createParticles();
+
+    function backToMenu() {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      $('menu').style.display = 'grid';
+      clearAllTimers();
+    }
+
+    function startGame(id) {
+      $('menu').style.display = 'none';
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      $(`screen-${id}`).classList.add('active');
+      if (id === 'ops') initOps();
+      if (id === 'func') initFunc();
+      if (id === 'pow') initPow();
+      if (id === 'seq') initSeq();
+      if (id === 'mem') initMemory();
+      if (id === 'cmp') initCmp();
+    }
+
+    let timers = [];
+    function clearAllTimers() { timers.forEach(t => clearInterval(t)); timers = []; }
+
+    function buildLevelBtns(containerId, max, onClick) {
+      const cont = $(containerId);
+      cont.innerHTML = '';
+      for (let i = 1; i <= max; i++) {
+        const b = document.createElement('button');
+        b.className = 'level-btn' + (i === 1 ? ' active' : '');
+        b.textContent = i;
+        b.onclick = () => {
+          cont.querySelectorAll('.level-btn').forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+          onClick(i);
+        };
+        cont.appendChild(b);
+      }
+    }
+
+    function updateTimerRing(id, left, max) {
+      const el = $(id);
+      el.style.setProperty('--p', (left / max) * 100 + '%');
+      el.querySelector('span').textContent = left;
+    }
+
+    // ========== 1. OPERACIONES AVANZADAS (con potencias y raíces) ==========
+    let ops = { level: 1, score: 0, streak: 0, correct: 0, timeLeft: 15, timer: null, answered: false };
+
+    const levelRanges = {
+      1: { min: 1, max: 12, ops: ['+', '-'] },
+      2: { min: 5, max: 25, ops: ['+', '-', '*'] },
+      3: { min: 8, max: 50, ops: ['+', '-', '*', '/'] },
+      4: { min: 2, max: 12, ops: ['+', '-', '*', '/', '^'] },
+      5: { min: 2, max: 15, ops: ['*', '/', '^', '√'] },
+      6: { min: 2, max: 20, ops: ['^', '√', '∛'] }
+    };
+
+    function initOps() {
+      ops = { level: 1, score: 0, streak: 0, correct: 0, timeLeft: 15, timer: null, answered: false };
+      updateOpsUI();
+      buildLevelBtns('ops-levels', 6, n => { ops.level = n; nextOps(); });
+      nextOps();
+    }
+
+    function updateOpsUI() {
+      $('ops-level').textContent = ops.level;
+      $('ops-score').textContent = ops.score;
+      $('ops-streak').textContent = ops.streak;
+      $('ops-progress').style.width = Math.min(100, (ops.correct / 10) * 100) + '%';
+    }
+
+    function generateEquation(level) {
+      const r = levelRanges[level] || levelRanges[6];
+      const op = r.ops[rand(0, r.ops.length - 1)];
+      let a, b, ans, display;
+
+      if (op === '+') {
+        a = rand(r.min, r.max); b = rand(r.min, r.max); ans = a + b; display = `${a} + ${b}`;
+      } else if (op === '-') {
+        a = rand(r.min, r.max); b = rand(r.min, a); ans = a - b; display = `${a} − ${b}`;
+      } else if (op === '*') {
+        a = rand(2, Math.min(12, Math.floor(r.max / 3))); b = rand(2, 12); ans = a * b; display = `${a} × ${b}`;
+      } else if (op === '/') {
+        b = rand(2, 12); ans = rand(2, 12); a = b * ans; display = `${a} ÷ ${b}`;
+      } else if (op === '^') {
+        a = rand(2, level >= 6 ? 8 : 6); b = rand(2, level >= 5 ? 4 : 3);
+        ans = Math.pow(a, b); display = `${a}^${b}`;
+      } else if (op === '√') {
+        const roots = [4,9,16,25,36,49,64,81,100,121,144,169,196,225];
+        a = roots[rand(0, Math.min(roots.length - 1, 6 + level))];
+        ans = Math.sqrt(a); display = `√${a}`;
+      } else { // ∛
+        const cubes = [8,27,64,125,216,343,512];
+        a = cubes[rand(0, Math.min(cubes.length - 1, 2 + level))];
+        ans = Math.round(Math.cbrt(a)); display = `∛${a}`;
+      }
+      return { display, ans: Math.round(ans) };
+    }
+
+    function nextOps() {
+      clearAllTimers();
+      ops.answered = false;
+      const eq = generateEquation(ops.level);
+      ops.current = eq;
+
+      const el = $('ops-eq');
+      el.textContent = eq.display + ' = ?';
+      el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+
+      const opts = new Set([eq.ans]);
+      while (opts.size < 4) {
+        const delta = rand(1, Math.max(4, Math.floor(Math.abs(eq.ans) * 0.25) + 1));
+        const wrong = eq.ans + (Math.random() > 0.5 ? delta : -delta);
+        if (wrong !== eq.ans && wrong >= 0) opts.add(wrong);
+      }
+      const cont = $('ops-options');
+      cont.innerHTML = '';
+      shuffle([...opts]).forEach(o => {
+        const btn = document.createElement('button');
+        btn.className = 'opt-btn'; btn.textContent = o;
+        btn.onclick = () => answerOps(o, btn);
+        cont.appendChild(btn);
+      });
+      $('ops-feedback').textContent = ''; $('ops-feedback').className = 'feedback';
+
+      const maxT = ops.level <= 2 ? 15 : ops.level <= 4 ? 12 : 10;
+      ops.timeLeft = maxT;
+      updateTimerRing('ops-timer', ops.timeLeft, maxT);
+      ops.timer = setInterval(() => {
+        ops.timeLeft--;
+        updateTimerRing('ops-timer', ops.timeLeft, maxT);
+        if (ops.timeLeft <= 0) {
+          clearInterval(ops.timer);
+          if (!ops.answered) {
+            ops.streak = 0;
+            $('ops-feedback').textContent = `¡Tiempo! Era ${eq.ans}`;
+            $('ops-feedback').className = 'feedback bad';
+            updateOpsUI();
+            setTimeout(nextOps, 1300);
+          }
+        }
+      }, 1000);
+      timers.push(ops.timer);
+    }
+
+    function answerOps(val, btn) {
+      if (ops.answered) return;
+      ops.answered = true; clearInterval(ops.timer);
+      const correct = val === ops.current.ans;
+      document.querySelectorAll('#ops-options .opt-btn').forEach(b => {
+        b.style.pointerEvents = 'none';
+        if (+b.textContent === ops.current.ans) b.classList.add('correct');
+      });
+      if (!correct) btn.classList.add('wrong');
+
+      if (correct) {
+        ops.score += 10 + ops.streak * 2 + ops.level * 3;
+        ops.streak++; ops.correct++;
+        $('ops-feedback').textContent = ['¡Excelente!','¡Genial!','¡Correcto!','¡Imparable!'][rand(0,3)];
+        $('ops-feedback').className = 'feedback good';
+        confettiBurst(window.innerWidth/2, window.innerHeight*0.35);
+      } else {
+        ops.streak = 0;
+        $('ops-feedback').textContent = `Era ${ops.current.ans}`;
+        $('ops-feedback').className = 'feedback bad';
+      }
+      updateOpsUI();
+      if (ops.correct > 0 && ops.correct % 8 === 0 && ops.level < 6) {
+        ops.level++;
+        document.querySelectorAll('#ops-levels .level-btn').forEach((b,i) => b.classList.toggle('active', i+1 === ops.level));
+      }
+      setTimeout(nextOps, 1200);
+    }
+
+    // ========== 2. FUNCIONES f(x) y AFÍN ==========
+    let func = { level: 1, score: 0, streak: 0, correct: 0, timeLeft: 18, timer: null, answered: false };
+
+    function initFunc() {
+      func = { level: 1, score: 0, streak: 0, correct: 0, timeLeft: 18, timer: null, answered: false };
+      updateFuncUI();
+      buildLevelBtns('func-levels', 5, n => { func.level = n; nextFunc(); });
+      nextFunc();
+    }
+
+    function updateFuncUI() {
+      $('func-level').textContent = func.level;
+      $('func-score').textContent = func.score;
+      $('func-streak').textContent = func.streak;
+      $('func-progress').style.width = Math.min(100, (func.correct / 8) * 100) + '%';
+    }
+
+    function generateFuncQ(level) {
+      // Tipos: evaluar f(x), encontrar f(a), identificar pendiente, identificar b, reconocer afín
+      const type = level <= 2 ? rand(0, 1) : level === 3 ? rand(0, 2) : rand(0, 4);
+      let display, ans, hint;
+
+      if (type === 0) { // Evaluar f(x) = mx + b
+        const m = rand(1, 6) * (Math.random() > 0.7 ? -1 : 1);
+        const b = rand(-10, 15);
+        const x = rand(-5, 10);
+        ans = m * x + b;
+        display = `Si f(x) = ${m}x ${b >= 0 ? '+ ' + b : '− ' + Math.abs(b)}, ¿cuánto vale f(${x})?`;
+        hint = 'Sustituye x y calcula: f(x) = mx + b';
+      } else if (type === 1) { // Evaluar f(x) = x² o simple
+        const a = rand(1, 5);
+        const x = rand(-4, 6);
+        if (level <= 2) {
+          ans = a * x + rand(0, 5);
+          display = `f(x) = ${a}x + ${ans - a * x}. Calcula f(${x})`;
+          // recalculate properly
+          const b = rand(0, 8);
+          ans = a * x + b;
+          display = `f(x) = ${a}x + ${b}. ¿f(${x}) = ?`;
+        } else {
+          ans = x * x;
+          display = `f(x) = x². ¿f(${x}) = ?`;
+        }
+        hint = 'Evalúa la función sustituyendo el valor de x';
+      } else if (type === 2) { // Pendiente m
+        const m = rand(1, 8) * (Math.random() > 0.6 ? -1 : 1);
+        const b = rand(-12, 12);
+        ans = m;
+        display = `En f(x) = ${m}x ${b >= 0 ? '+ ' + b : '− ' + Math.abs(b)}, la pendiente m es:`;
+        hint = 'En la función afín f(x) = mx + b, m es la pendiente';
+      } else if (type === 3) { // Intercepto b
+        const m = rand(1, 7);
+        const b = rand(-15, 15);
+        ans = b;
+        display = `En f(x) = ${m}x ${b >= 0 ? '+ ' + b : '− ' + Math.abs(b)}, el intercepto b es:`;
+        hint = 'En f(x) = mx + b, b es el valor cuando x = 0 (intercepto en y)';
+      } else { // ¿Es afín?
+        const isAfin = Math.random() > 0.4;
+        if (isAfin) {
+          const m = rand(1, 6); const b = rand(-8, 10);
+          display = `¿f(x) = ${m}x ${b >= 0 ? '+ ' + b : '− ' + Math.abs(b)} es una función afín?`;
+          ans = 1; // sí
+        } else {
+          const opts = [
+            `f(x) = x² + 3`,
+            `f(x) = 2/x`,
+            `f(x) = √x`,
+            `f(x) = |x| + 1`,
+            `f(x) = 3^x`
+          ];
+          display = `¿${opts[rand(0, opts.length-1)]} es una función afín?`;
+          ans = 0; // no
+        }
+        hint = 'La función afín es de la forma f(x) = mx + b (grado 1)';
+      }
+      return { display, ans, hint, type };
+    }
+
+    function nextFunc() {
+      clearAllTimers();
+      func.answered = false;
+      const q = generateFuncQ(func.level);
+      func.current = q;
+
+      $('func-hint').textContent = q.hint;
+      const el = $('func-eq');
+      el.textContent = q.display;
+      el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+
+      let options;
+      if (q.type === 4) { // sí/no
+        options = [1, 0];
+        // we'll display "Sí" / "No"
+      } else {
+        const opts = new Set([q.ans]);
+        while (opts.size < 4) {
+          const delta = rand(1, Math.max(2, Math.floor(Math.abs(q.ans) * 0.3) + 2));
+          const w = q.ans + (Math.random() > 0.5 ? delta : -delta);
+          if (w !== q.ans) opts.add(w);
+        }
+        options = shuffle([...opts]);
+      }
+
+      const cont = $('func-options');
+      cont.innerHTML = '';
+      if (q.type === 4) {
+        [['Sí', 1], ['No', 0]].forEach(([txt, val]) => {
+          const btn = document.createElement('button');
+          btn.className = 'opt-btn'; btn.textContent = txt;
+          btn.onclick = () => answerFunc(val, btn);
+          cont.appendChild(btn);
+        });
+      } else {
+        options.forEach(o => {
+          const btn = document.createElement('button');
+          btn.className = 'opt-btn'; btn.textContent = o;
+          btn.onclick = () => answerFunc(o, btn);
+          cont.appendChild(btn);
+        });
+      }
+      $('func-feedback').textContent = ''; $('func-feedback').className = 'feedback';
+
+      const maxT = func.level <= 2 ? 18 : func.level <= 4 ? 15 : 12;
+      func.timeLeft = maxT;
+      updateTimerRing('func-timer', func.timeLeft, maxT);
+      func.timer = setInterval(() => {
+        func.timeLeft--;
+        updateTimerRing('func-timer', func.timeLeft, maxT);
+        if (func.timeLeft <= 0) {
+          clearInterval(func.timer);
+          if (!func.answered) {
+            func.streak = 0;
+            const show = q.type === 4 ? (q.ans === 1 ? 'Sí' : 'No') : q.ans;
+            $('func-feedback').textContent = `Tiempo. Respuesta: ${show}`;
+            $('func-feedback').className = 'feedback bad';
+            updateFuncUI();
+            setTimeout(nextFunc, 1400);
+          }
+        }
+      }, 1000);
+      timers.push(func.timer);
+    }
+
+    function answerFunc(val, btn) {
+      if (func.answered) return;
+      func.answered = true; clearInterval(func.timer);
+      const correct = val === func.current.ans;
+      document.querySelectorAll('#func-options .opt-btn').forEach(b => b.style.pointerEvents = 'none');
+      if (correct) {
+        btn.classList.add('correct');
+        func.score += 12 + func.streak * 3 + func.level * 4;
+        func.streak++; func.correct++;
+        $('func-feedback').textContent = '¡Correcto!';
+        $('func-feedback').className = 'feedback good';
+        confettiBurst(window.innerWidth/2, 300);
+      } else {
+        btn.classList.add('wrong');
+        const show = func.current.type === 4 ? (func.current.ans === 1 ? 'Sí' : 'No') : func.current.ans;
+        $('func-feedback').textContent = `Era: ${show}`;
+        $('func-feedback').className = 'feedback bad';
+        func.streak = 0;
+      }
+      updateFuncUI();
+      if (func.correct > 0 && func.correct % 7 === 0 && func.level < 5) {
+        func.level++;
+        document.querySelectorAll('#func-levels .level-btn').forEach((b,i) => b.classList.toggle('active', i+1 === func.level));
+      }
+      setTimeout(nextFunc, 1300);
+    }
+
+    // ========== 3. POTENCIAS Y RAÍCES ==========
+    let pow = { level: 1, score: 0, streak: 0, correct: 0, timeLeft: 14, timer: null, answered: false };
+
+    function initPow() {
+      pow = { level: 1, score: 0, streak: 0, correct: 0, timeLeft: 14, timer: null, answered: false };
+      updatePowUI();
+      buildLevelBtns('pow-levels', 5, n => { pow.level = n; nextPow(); });
+      nextPow();
+    }
+
+    function updatePowUI() {
+      $('pow-level').textContent = pow.level;
+      $('pow-score').textContent = pow.score;
+      $('pow-streak').textContent = pow.streak;
+      $('pow-progress').style.width = Math.min(100, (pow.correct / 8) * 100) + '%';
+    }
+
+    function generatePowQ(level) {
+      let display, ans;
+      const mode = level <= 2 ? rand(0, 1) : level === 3 ? rand(0, 2) : rand(0, 3);
+
+      if (mode === 0) { // potencia simple
+        const base = rand(2, level >= 4 ? 9 : 6);
+        const exp = rand(2, level >= 3 ? 4 : 3);
+        ans = Math.pow(base, exp);
+        display = `${base}^${exp} = ?`;
+      } else if (mode === 1) { // raíz cuadrada
+        const perfects = [4,9,16,25,36,49,64,81,100,121,144,169,196,225,256];
+        const idx = rand(0, Math.min(perfects.length - 1, 5 + level * 2));
+        ans = Math.sqrt(perfects[idx]);
+        display = `√${perfects[idx]} = ?`;
+      } else if (mode === 2) { // raíz cúbica
+        const cubes = [8,27,64,125,216,343,512,729,1000];
+        const idx = rand(0, Math.min(cubes.length - 1, 3 + level));
+        ans = Math.round(Math.cbrt(cubes[idx]));
+        display = `∛${cubes[idx]} = ?`;
+      } else { // potencia con base negativa o más grande /  a^0, a^1
+        if (Math.random() > 0.5) {
+          const base = rand(2, 7);
+          ans = 1;
+          display = `${base}^0 = ?`;
+        } else {
+          const base = rand(-5, -2);
+          const exp = rand(2, 3);
+          ans = Math.pow(base, exp);
+          display = `(${base})^${exp} = ?`;
+        }
+      }
+      return { display, ans: Math.round(ans) };
+    }
+
+    function nextPow() {
+      clearAllTimers();
+      pow.answered = false;
+      const q = generatePowQ(pow.level);
+      pow.current = q;
+
+      const el = $('pow-eq');
+      el.textContent = q.display;
+      el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+
+      const opts = new Set([q.ans]);
+      while (opts.size < 4) {
+        const delta = rand(1, Math.max(2, Math.floor(Math.abs(q.ans) * 0.3) + 1));
+        const w = q.ans + (Math.random() > 0.5 ? delta : -delta);
+        if (w !== q.ans) opts.add(w);
+      }
+      const cont = $('pow-options');
+      cont.innerHTML = '';
+      shuffle([...opts]).forEach(o => {
+        const btn = document.createElement('button');
+        btn.className = 'opt-btn'; btn.textContent = o;
+        btn.onclick = () => answerPow(o, btn);
+        cont.appendChild(btn);
+      });
+      $('pow-feedback').textContent = ''; $('pow-feedback').className = 'feedback';
+
+      const maxT = pow.level <= 2 ? 14 : pow.level <= 4 ? 11 : 9;
+      pow.timeLeft = maxT;
+      updateTimerRing('pow-timer', pow.timeLeft, maxT);
+      pow.timer = setInterval(() => {
+        pow.timeLeft--;
+        updateTimerRing('pow-timer', pow.timeLeft, maxT);
+        if (pow.timeLeft <= 0) {
+          clearInterval(pow.timer);
+          if (!pow.answered) {
+            pow.streak = 0;
+            $('pow-feedback').textContent = `Tiempo. Era ${q.ans}`;
+            $('pow-feedback').className = 'feedback bad';
+            updatePowUI();
+            setTimeout(nextPow, 1300);
+          }
+        }
+      }, 1000);
+      timers.push(pow.timer);
+    }
+
+    function answerPow(val, btn) {
+      if (pow.answered) return;
+      pow.answered = true; clearInterval(pow.timer);
+      const correct = val === pow.current.ans;
+      document.querySelectorAll('#pow-options .opt-btn').forEach(b => {
+        b.style.pointerEvents = 'none';
+        if (+b.textContent === pow.current.ans) b.classList.add('correct');
+      });
+      if (!correct) btn.classList.add('wrong');
+
+      if (correct) {
+        pow.score += 12 + pow.streak * 3 + pow.level * 3;
+        pow.streak++; pow.correct++;
+        $('pow-feedback').textContent = ['¡Bien!','¡Exacto!','¡Potente!','¡Raíz perfecta!'][rand(0,3)];
+        $('pow-feedback').className = 'feedback good';
+        confettiBurst(window.innerWidth/2, 300);
+      } else {
+        pow.streak = 0;
+        $('pow-feedback').textContent = `Era ${pow.current.ans}`;
+        $('pow-feedback').className = 'feedback bad';
+      }
+      updatePowUI();
+      if (pow.correct > 0 && pow.correct % 7 === 0 && pow.level < 5) {
+        pow.level++;
+        document.querySelectorAll('#pow-levels .level-btn').forEach((b,i) => b.classList.toggle('active', i+1 === pow.level));
+      }
+      setTimeout(nextPow, 1200);
+    }
+
+    // ========== 4. SECUENCIAS ==========
+    let seq = { level: 1, score: 0, correct: 0 };
+
+    function initSeq() {
+      seq = { level: 1, score: 0, correct: 0 };
+      updateSeqUI();
+      buildLevelBtns('seq-levels', 5, n => { seq.level = n; nextSeq(); });
+      nextSeq();
+    }
+
+    function updateSeqUI() {
+      $('seq-level').textContent = seq.level;
+      $('seq-score').textContent = seq.score;
+      $('seq-progress').style.width = Math.min(100, (seq.correct / 8) * 100) + '%';
+    }
+
+    function generateSequence(level) {
+      const type = rand(0, Math.min(4, level + 1));
+      let seqArr = [], missingIdx, answer;
+
+      if (type === 0) {
+        const start = rand(1, 10 + level * 5); const step = rand(1, 3 + level);
+        for (let i = 0; i < 5; i++) seqArr.push(start + i * step);
+      } else if (type === 1) {
+        let s = rand(2, 15);
+        for (let i = 0; i < 5; i++) { seqArr.push(s); s += (i + 1) * (level > 2 ? 2 : 1); }
+      } else if (type === 2) {
+        let s = rand(2, 6); const mult = rand(2, 3);
+        for (let i = 0; i < 5; i++) { seqArr.push(s); s *= mult; }
+      } else if (type === 3) {
+        const start = rand(1, 20);
+        for (let i = 0; i < 5; i++) seqArr.push(start + i * 2);
+      } else {
+        let a = rand(1, 8), b = rand(1, 8);
+        for (let i = 0; i < 5; i++) { seqArr.push(a); const next = a + b; a = b; b = next; }
+      }
+      missingIdx = rand(1, 3);
+      answer = seqArr[missingIdx];
+      seqArr[missingIdx] = null;
+      return { seqArr, answer, missingIdx };
+    }
+
+    function nextSeq() {
+      const data = generateSequence(seq.level);
+      seq.current = data;
+      const cont = $('seq-boxes');
+      cont.innerHTML = '';
+      data.seqArr.forEach(n => {
+        const box = document.createElement('div');
+        box.className = 'seq-box' + (n === null ? ' missing' : '');
+        box.textContent = n === null ? '?' : n;
+        cont.appendChild(box);
+      });
+      const opts = new Set([data.answer]);
+      while (opts.size < 4) {
+        const w = data.answer + rand(-8, 8);
+        if (w > 0 && w !== data.answer) opts.add(w);
+      }
+      const optCont = $('seq-options');
+      optCont.innerHTML = '';
+      shuffle([...opts]).forEach(o => {
+        const btn = document.createElement('button');
+        btn.className = 'opt-btn'; btn.textContent = o;
+        btn.onclick = () => answerSeq(o, btn);
+        optCont.appendChild(btn);
+      });
+      $('seq-feedback').textContent = ''; $('seq-feedback').className = 'feedback';
+    }
+
+    function answerSeq(val, btn) {
+      document.querySelectorAll('#seq-options .opt-btn').forEach(b => b.style.pointerEvents = 'none');
+      const correct = val === seq.current.answer;
+      if (correct) {
+        btn.classList.add('correct');
+        seq.score += 15 + seq.level * 5; seq.correct++;
+        $('seq-feedback').textContent = '¡Patrón encontrado!';
+        $('seq-feedback').className = 'feedback good';
+        confettiBurst(window.innerWidth/2, 300);
+        document.querySelectorAll('#seq-boxes .seq-box')[seq.current.missingIdx].textContent = val;
+        document.querySelectorAll('#seq-boxes .seq-box')[seq.current.missingIdx].classList.remove('missing');
+      } else {
+        btn.classList.add('wrong');
+        $('seq-feedback').textContent = `Era ${seq.current.answer}`;
+        $('seq-feedback').className = 'feedback bad';
+      }
+      updateSeqUI();
+      if (seq.correct > 0 && seq.correct % 6 === 0 && seq.level < 5) {
+        seq.level++;
+        document.querySelectorAll('#seq-levels .level-btn').forEach((b,i) => b.classList.toggle('active', i+1 === seq.level));
+      }
+      setTimeout(nextSeq, 1400);
+    }
+
+    // ========== 5. MEMORIA ==========
+    let mem = { moves: 0, pairs: 0, flipped: [], lock: false, level: 1 };
+
+    function initMemory() {
+      mem = { moves: 0, pairs: 0, flipped: [], lock: false, level: 1 };
+      $('mem-moves').textContent = 0; $('mem-pairs').textContent = 0;
+      buildLevelBtns('mem-levels', 3, n => { mem.level = n; buildMemoryGrid(); });
+      buildMemoryGrid();
+    }
+
+    function buildMemoryGrid() {
+      mem.flipped = []; mem.pairs = 0; mem.moves = 0; mem.lock = false;
+      $('mem-moves').textContent = 0; $('mem-pairs').textContent = 0;
+
+      const pairsCount = mem.level === 1 ? 6 : mem.level === 2 ? 8 : 10;
+      const equations = [];
+      const used = new Set();
+
+      while (equations.length < pairsCount) {
+        const mode = rand(0, mem.level >= 2 ? 3 : 2);
+        let text, ans;
+        if (mode === 0) {
+          const a = rand(2, 9 + mem.level); const b = rand(2, 9);
+          ans = a + b; text = `${a}+${b}`;
+        } else if (mode === 1) {
+          const a = rand(3, 12); const b = rand(2, a);
+          ans = a - b; text = `${a}−${b}`;
+        } else if (mode === 2) {
+          const a = rand(2, 9); const b = rand(2, 8);
+          ans = a * b; text = `${a}×${b}`;
+        } else {
+          const base = rand(2, 6); const exp = rand(2, 3);
+          ans = Math.pow(base, exp); text = `${base}^${exp}`;
+        }
+        if (used.has(ans) || used.has(text)) continue;
+        used.add(ans); used.add(text);
+        equations.push({ text, ans });
+      }
+
+      const cards = [];
+      equations.forEach((e, i) => {
+        cards.push({ id: i, content: e.text, pairId: i });
+        cards.push({ id: i + 100, content: String(e.ans), pairId: i });
+      });
+      const shuffled = shuffle(cards);
+      const grid = $('mem-grid');
+      grid.style.gridTemplateColumns = `repeat(${pairsCount <= 6 ? 3 : 4}, 1fr)`;
+      grid.innerHTML = '';
+      shuffled.forEach((card, idx) => {
+        const div = document.createElement('div');
+        div.className = 'mem-card';
+        div.dataset.pair = card.pairId;
+        div.innerHTML = `<div class="front">?</div><div class="back">${card.content}</div>`;
+        div.onclick = () => flipCard(div, card);
+        grid.appendChild(div);
+      });
+    }
+
+    function flipCard(el, card) {
+      if (mem.lock || el.classList.contains('flipped') || el.classList.contains('matched')) return;
+      el.classList.add('flipped');
+      mem.flipped.push({ el, card });
+      if (mem.flipped.length === 2) {
+        mem.moves++; $('mem-moves').textContent = mem.moves;
+        mem.lock = true;
+        const [a, b] = mem.flipped;
+        if (a.card.pairId === b.card.pairId) {
+          setTimeout(() => {
+            a.el.classList.add('matched'); b.el.classList.add('matched');
+            mem.pairs++; $('mem-pairs').textContent = mem.pairs;
+            mem.flipped = []; mem.lock = false;
+            confettiBurst(window.innerWidth/2, 280);
+            const total = mem.level === 1 ? 6 : mem.level === 2 ? 8 : 10;
+            if (mem.pairs === total) setTimeout(() => alert(`¡Completaste el nivel!\nMovimientos: ${mem.moves}`), 400);
+          }, 500);
+        } else {
+          setTimeout(() => {
+            a.el.classList.remove('flipped'); b.el.classList.remove('flipped');
+            mem.flipped = []; mem.lock = false;
+          }, 900);
+        }
+      }
+    }
+
+    // ========== 6. COMPARACIÓN ==========
+    let cmp = { level: 1, score: 0, streak: 0, correct: 0, timeLeft: 12, timer: null, answered: false };
+
+    function initCmp() {
+      cmp = { level: 1, score: 0, streak: 0, correct: 0, timeLeft: 12, timer: null, answered: false };
+      updateCmpUI();
+      buildLevelBtns('cmp-levels', 5, n => { cmp.level = n; nextCmp(); });
+      nextCmp();
+    }
+
+    function updateCmpUI() {
+      $('cmp-level').textContent = cmp.level;
+      $('cmp-score').textContent = cmp.score;
+      $('cmp-streak').textContent = cmp.streak;
+      $('cmp-progress').style.width = Math.min(100, (cmp.correct / 10) * 100) + '%';
+    }
+
+    function nextCmp() {
+      clearAllTimers();
+      cmp.answered = false;
+      const L = cmp.level;
+      let left, right, realLeft, realRight;
+
+      if (L <= 2) {
+        left = rand(1, 25 + L * 10); right = rand(1, 25 + L * 10);
+        realLeft = left; realRight = right;
+        $('cmp-left').textContent = left; $('cmp-right').textContent = right;
+      } else if (L === 3) {
+        const a = rand(2, 12), b = rand(2, 10);
+        left = `${a}+${b}`; realLeft = a + b;
+        right = rand(realLeft - 6, realLeft + 6); realRight = right;
+        $('cmp-left').textContent = left; $('cmp-right').textContent = right;
+      } else if (L === 4) {
+        const base = rand(2, 6), exp = rand(2, 3);
+        left = `${base}^${exp}`; realLeft = Math.pow(base, exp);
+        const c = rand(10, 40); realRight = c; right = c;
+        $('cmp-left').textContent = left; $('cmp-right').textContent = right;
+      } else {
+        const base = rand(2, 5), exp = rand(2, 3);
+        left = `${base}^${exp}`; realLeft = Math.pow(base, exp);
+        const roots = [16,25,36,49,64,81,100];
+        const r = roots[rand(0, roots.length - 1)];
+        right = `√${r}`; realRight = Math.sqrt(r);
+        $('cmp-left').textContent = left; $('cmp-right').textContent = right;
+      }
+
+      cmp.current = { answer: realLeft < realRight ? '<' : realLeft > realRight ? '>' : '=' };
+      $('cmp-feedback').textContent = ''; $('cmp-feedback').className = 'feedback';
+
+      const maxT = L <= 2 ? 12 : L <= 4 ? 10 : 8;
+      cmp.timeLeft = maxT;
+      updateTimerRing('cmp-timer', cmp.timeLeft, maxT);
+      cmp.timer = setInterval(() => {
+        cmp.timeLeft--;
+        updateTimerRing('cmp-timer', cmp.timeLeft, maxT);
+        if (cmp.timeLeft <= 0) {
+          clearInterval(cmp.timer);
+          if (!cmp.answered) {
+            cmp.streak = 0;
+            $('cmp-feedback').textContent = `Tiempo. Era ${cmp.current.answer}`;
+            $('cmp-feedback').className = 'feedback bad';
+            updateCmpUI();
+            setTimeout(nextCmp, 1200);
+          }
+        }
+      }, 1000);
+      timers.push(cmp.timer);
+    }
+
+    function answerCmp(sym) {
+      if (cmp.answered) return;
+      cmp.answered = true; clearInterval(cmp.timer);
+      const correct = sym === cmp.current.answer;
+      if (correct) {
+        cmp.score += 12 + cmp.streak * 3 + cmp.level * 2;
+        cmp.streak++; cmp.correct++;
+        $('cmp-feedback').textContent = '¡Correcto!';
+        $('cmp-feedback').className = 'feedback good';
+        confettiBurst(window.innerWidth/2, 300);
+      } else {
+        cmp.streak = 0;
+        $('cmp-feedback').textContent = `Era ${cmp.current.answer}`;
+        $('cmp-feedback').className = 'feedback bad';
+      }
+      updateCmpUI();
+      if (cmp.correct > 0 && cmp.correct % 8 === 0 && cmp.level < 5) {
+        cmp.level++;
+        document.querySelectorAll('#cmp-levels .level-btn').forEach((b,i) => b.classList.toggle('active', i+1 === cmp.level));
+      }
+      setTimeout(nextCmp, 1100);
+    }
+  </script>
+<script>
+(()=>{
+const GAMES={ops:'Operaciones',func:'Funciones f(x)',pow:'Potencias y raíces',seq:'Secuencias',cmp:'Mayor, menor o igual',plane:'Plano cartesiano'};
+const MODES={clock:'⏱ Contra reloj',relaxed:'😌 Sin presión',classic:'🎯 Clásico'};
+const pl={level:1,score:0,streak:0,correct:0};
+const SC={ops:()=>ops.score,func:()=>func.score,pow:()=>pow.score,seq:()=>seq.score,cmp:()=>cmp.score,plane:()=>pl.score};
+let mode='classic',cur=null,fin=false,clk=null,left=60,DB=null,U=null,me=null,uid=null,rows=[],P={},acct=null,accDoc=null,qn=0;
+
+window.setMode=m=>{mode=m;document.querySelectorAll('#modebar .chip[data-m]').forEach(c=>c.classList.toggle('active',c.dataset.m===m));};
+
+const MAXLV={ops:6,func:5,pow:5,seq:5,cmp:5,plane:3};
+const GM={ops:['ops',()=>ops,()=>updateOpsUI()],func:['func',()=>func,()=>updateFuncUI()],pow:['pow',()=>pow,()=>updatePowUI()],seq:['seq',()=>seq,()=>updateSeqUI()],cmp:['cmp',()=>cmp,()=>updateCmpUI()],plane:['pl',()=>pl,()=>updPl()]};
+function gate(k){
+  if(mode!=='classic'||cur!==k)return true;
+  if(qn>=50||SC[k]()>=1500){finishRound();return false;}
+  qn++;const g=GM[k],o=g[1]();o.level=Math.min(MAXLV[k],Math.ceil(qn/10));g[2]();upd();
+  document.querySelectorAll('#'+g[0]+'-levels .level-btn').forEach((b,i)=>b.classList.toggle('active',i+1===o.level));
+  return true;
+}
+// Sin presión / contra reloj: se quita el temporizador por pregunta
+['ops','func','pow','cmp','seq'].forEach(k=>{
+  const n='next'+k[0].toUpperCase()+k.slice(1),f=window[n];
+  window[n]=function(){if(!gate(k))return;f();
+    if(mode!=='classic'&&cur===k){clearAllTimers();const e=$(k+'-timer');
+      if(e){e.style.setProperty('--p','100%');e.querySelector('span').textContent=mode==='clock'?'⏱':'∞';}}};
+});
+
+function resetRound(){clearInterval(clk);$('roundbar').style.display='none';$('endOverlay').style.display='none';}
+function upd(){$('rb-info').textContent=mode==='clock'?'⏱ '+left+' s':mode==='classic'?'Pregunta '+qn+'/50':MODES[mode];}
+function startRound(){$('roundbar').style.display='flex';left=60;upd();
+  if(mode==='clock')clk=setInterval(()=>{left--;upd();if(left<=0)finishRound();},1000);}
+
+const sg=window.startGame,bm=window.backToMenu;
+window.startGame=id=>{
+  $('modebar').style.display='none';cur=id;fin=false;qn=0;resetRound();
+  if(id==='board'||id==='plane'){
+    $('menu').style.display='none';
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    $('screen-'+id).classList.add('active');
+  }
+  if(id==='board')return initBoard();
+  id==='plane'?initPlane():sg(id);
+  const lvb=$((id==='plane'?'pl':id)+'-levels');if(lvb&&id!=='mem')lvb.style.display=mode==='classic'?'none':'';
+  if(id!=='mem')startRound();
+};
+window.backToMenu=()=>{resetRound();cur=null;bm();$('modebar').style.display='flex';};
+window.again=()=>startGame(cur);
+window.viewRank=()=>{const g=cur,m=mode;startGame('board');$('lb-game').value=g;$('lb-mode').value=m;renderBoard();};
+
+async function saveScore(g,m,s){
+  if(!DB||!uid||!acct)return '🔒 Inicia sesión para guardar tu puntaje.';
+  const key=g+'_'+m,ref=DB.doc('scores/'+uid);
+  try{const d=await ref.get(),c=d.exists?d.data():{};
+    if((c[key]||0)>=s)return 'No superaste tu mejor marca.';
+    await ref.set({...c,[key]:s,name:acct.name});return '🏆 ¡Guardado!';
+  }catch(e){return 'No se pudo guardar (¿tienes permiso de colaborador?).';}
+}
+window.finishRound=async()=>{
+  if(fin||!SC[cur])return;fin=true;clearInterval(clk);clearAllTimers();
+  const s=Math.min(SC[cur](),mode==='classic'?1500:1e9);$('end-score').textContent=s;$('end-msg').textContent='Guardando…';
+  $('endOverlay').style.display='flex';$('end-msg').textContent=await saveScore(cur,mode,s);
+};
+
+// ---------- Ranking ----------
+function initBoard(){
+  const g=$('lb-game');
+  if(!g.options.length){
+    g.innerHTML=Object.entries(GAMES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+    $('lb-mode').innerHTML=Object.entries(MODES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+  }
+  renderBoard();
+}
+window.renderBoard=async()=>{
+  $('lb-status').textContent=acct?'👤 '+acct.name:'🔒 Sin sesión';
+  const box=$('lb-list');box.textContent='';
+  if(!DB){box.textContent='Inicia sesión para ver el ranking.';return;}
+  const key=$('lb-game').value+'_'+$('lb-mode').value;
+  const top=rows.filter(r=>typeof r.d[key]==='number').sort((a,b)=>b.d[key]-a.d[key]).slice(0,20);
+  if(!top.length){box.textContent='Aún no hay puntajes.';return;}
+  top.forEach((r,i)=>{
+    const d=document.createElement('div'),a=document.createElement('span'),n=document.createElement('span'),s=document.createElement('span');
+    d.className='lb-row'+(r.id===uid?' me':'');a.textContent=['🥇','🥈','🥉'][i]||(i+1)+'.';
+    n.className='n';n.textContent=(r.d.name||'Jugador')+(r.id===uid?' (tú)':'');
+    s.className='s';s.textContent=r.d[key];d.append(a,n,s);box.appendChild(d);
+  });
+};
+(async()=>{
+  try{firebase.initializeApp(window.FIREBASE_CONFIG);DB=firebase.firestore();}catch(e){return;}
+  firebase.auth().onAuthStateChanged(u=>{
+    uid=u?u.uid:null;
+    if(u){setAcct({name:u.displayName||'Jugador',email:u.email});$('authOverlay').style.display='none';}
+    else{setAcct(null);authTab('login');$('authOverlay').style.display='flex';}
+  });
+  if(DB)DB.collection('scores').limit(500).onSnapshot(s=>{rows=s.docs.map(d=>({id:d.id,d:d.data()}));if(cur==='board')renderBoard();},()=>{});
+})();
+
+// ---------- Cuenta (Firebase) ----------
+function setAcct(a){acct=a;$('acct').textContent=a?'👤 '+a.name+' · salir':'🔒 Sin sesión';$('del').style.display=a?'':'none';}
+$('acct').style.cursor='pointer';
+$('acct').onclick=()=>{if(acct)firebase.auth().signOut();else{authTab('login');$('authOverlay').style.display='flex';}};
+window.authTab=m=>{
+  $('authOverlay').dataset.m=m;
+  $('tab-reg').classList.toggle('active',m==='reg');$('tab-login').classList.toggle('active',m==='login');
+  $('au-title').textContent=m==='reg'?'¡Bienvenido! Crea tu cuenta':'Inicia sesión';
+  $('au-name').style.display=m==='reg'?'block':'none';
+  $('au-go').textContent=m==='reg'?'Crear cuenta':'Entrar';$('au-msg').textContent='';
+};
+window.authGo=async()=>{
+  const m=$('authOverlay').dataset.m,email=$('au-mail').value.trim().toLowerCase(),pw=$('au-pw').value,name=$('au-name').value.trim(),msg=$('au-msg');
+  if(!/^\S+@\S+\.\S+$/.test(email)){msg.textContent='Escribe un correo válido.';return;}
+  if(pw.length<6){msg.textContent='La contraseña debe tener al menos 6 caracteres.';return;}
+  try{
+    if(m==='reg'){
+      if(!name){msg.textContent='¿Cómo te llamas?';return;}
+      const c=await firebase.auth().createUserWithEmailAndPassword(email,pw);
+      await c.user.updateProfile({displayName:name});setAcct({name,email});
+    }else{
+      const c=await firebase.auth().signInWithEmailAndPassword(email,pw);
+      setAcct({name:c.user.displayName||'Jugador',email});
+    }
+    $('authOverlay').style.display='none';$('au-pw').value='';
+  }catch(e){
+    const c=e.code||'';
+    msg.textContent=c==='auth/email-already-in-use'?'Ese correo ya está registrado.':/invalid|wrong|user-not-found/.test(c)?'Correo o contraseña incorrectos.':'No se pudo continuar.';
+  }
+};
+window.authSkip=()=>{$('authOverlay').style.display='none';};
+window.delAcct=async()=>{
+  const b=$('del');
+  if(!b.dataset.s){b.dataset.s=1;b.textContent='¿Seguro? Toca otra vez';setTimeout(()=>{delete b.dataset.s;b.textContent='🗑 Eliminar cuenta';},4000);return;}
+  delete b.dataset.s;b.textContent='🗑 Eliminar cuenta';
+  try{await DB.doc('scores/'+uid).delete();await firebase.auth().currentUser.delete();}
+  catch(e){$('acct').textContent='Cierra sesión, entra de nuevo y reintenta';}
+};
+
+// ---------- Plano cartesiano ----------
+const fmt=(m,b)=>(m===1?'x':m===-1?'−x':`${m}x`).replace('-','−')+(b?` ${b>0?'+':'−'} ${Math.abs(b)}`:'');
+const X=v=>200+v*30,Y=v=>200-v*30;
+function updPl(){$('pl-level').textContent=pl.level;$('pl-score').textContent=pl.score;$('pl-streak').textContent=pl.streak;}
+function initPlane(){
+  Object.assign(pl,{level:1,score:0,streak:0,correct:0});
+  buildLevelBtns('pl-levels',3,n=>{pl.level=n;newPlane();});newPlane();
+}
+function newPlane(){
+  if(!gate('plane'))return;
+  const R=[[1,2,0,2],[-2,2,-2,2],[-3,3,-3,3]][pl.level-1],xs=[-2,-1,0,1,2];let m,b;
+  do{m=rand(R[0],R[1]);b=rand(R[2],R[3]);}while(m===0||xs.some(x=>Math.abs(m*x+b)>6));
+  P={m,b,xs,pts:new Set(),done:false};
+  $('pl-eq').textContent='y = '+fmt(m,b);
+  $('pl-table').innerHTML='<tr><th>x</th>'+xs.map(x=>`<td>${x}</td>`).join('')+'</tr><tr><th>y</th>'+xs.map(()=>'<td><input type="number" inputmode="numeric"></td>').join('')+'</tr>';
+  $('pl-fb').textContent='';$('pl-fb').className='feedback';$('pl-count').textContent=0;updPl();drawPlane();
+}
+window.newPlane=newPlane;
+function drawPlane(res){
+  let s='';
+  for(let i=-6;i<=6;i++){
+    const c='gl'+(i?'':' ax');
+    s+=`<line x1="${X(i)}" y1="20" x2="${X(i)}" y2="380" class="${c}"/><line x1="20" y1="${Y(i)}" x2="380" y2="${Y(i)}" class="${c}"/>`;
+    if(i&&i%2===0)s+=`<text x="${X(i)}" y="214" class="tk">${i}</text><text x="190" y="${Y(i)+3}" class="tk">${i}</text>`;
+  }
+  const pts=[...P.pts].map(k=>k.split(',').map(Number)).sort((a,b)=>a[0]-b[0]);
+  if(res){
+    if(res.ptsOK)s+=`<line x1="${X(-7)}" y1="${Y(-7*P.m+P.b)}" x2="${X(7)}" y2="${Y(7*P.m+P.b)}" stroke="#00b894" stroke-width="3" stroke-linecap="round"/>`;
+    else if(pts.length>1)s+=`<polyline points="${pts.map(p=>X(p[0])+','+Y(p[1])).join(' ')}" fill="none" stroke="#e17055" stroke-width="3" stroke-dasharray="6 5"/>`;
+    res.exp.filter(k=>!P.pts.has(k)).forEach(k=>{const [x,y]=k.split(',').map(Number);s+=`<circle cx="${X(x)}" cy="${Y(y)}" r="9" fill="none" stroke="#fdcb6e" stroke-width="2" stroke-dasharray="3 3"/>`;});
+  }
+  pts.forEach(([x,y])=>{
+    const col=!res?'#00cec9':res.exp.includes(x+','+y)?'#00b894':'#e17055';
+    s+=`<circle cx="${X(x)}" cy="${Y(y)}" r="7" fill="${col}"/>`;
+  });
+  $('pl-svg').innerHTML=s;
+}
+$('pl-svg').addEventListener('click',e=>{
+  if(P.done)return;
+  const r=e.currentTarget.getBoundingClientRect();
+  const x=Math.round(((e.clientX-r.left)/r.width*400-200)/30),y=-Math.round(((e.clientY-r.top)/r.height*400-200)/30);
+  if(Math.abs(x)>6||Math.abs(y)>6)return;
+  const k=x+','+y;P.pts.has(k)?P.pts.delete(k):P.pts.add(k);
+  $('pl-count').textContent=P.pts.size;drawPlane();
+});
+window.checkPlane=()=>{
+  if(P.done)return;
+  let t=0;
+  document.querySelectorAll('#pl-table input').forEach((el,i)=>{
+    const ok=el.value!==''&&Number(el.value)===P.m*P.xs[i]+P.b;el.className=ok?'ok':'bad';if(ok)t++;
+  });
+  const exp=P.xs.map(x=>x+','+(P.m*x+P.b)),good=exp.filter(k=>P.pts.has(k)).length,extra=P.pts.size-good;
+  const ptsOK=good===5&&extra===0;drawPlane({ptsOK,exp});
+  const fb=$('pl-fb');
+  if(t===5&&ptsOK){
+    P.done=true;pl.score+=20+pl.level*5+pl.streak*3;pl.streak++;pl.correct++;
+    if(pl.correct%3===0&&pl.level<3){pl.level++;document.querySelectorAll('#pl-levels .level-btn').forEach((b,i)=>b.classList.toggle('active',i+1===pl.level));}
+    fb.textContent='¡Bien! ✔';fb.className='feedback good';
+    confettiBurst(innerWidth/2,300);updPl();
+    if(mode==='clock')setTimeout(()=>{if(!fin)newPlane();},1500);
+    else if(mode==='classic'&&(qn>=50||pl.score>=1500))setTimeout(finishRound,1200);
+  }else{
+    pl.streak=0;updPl();fb.className='feedback bad';
+    fb.textContent=`Tabla ${t}/5 · Plano ${good}/5`+(extra?` · ${extra} punto(s) de más`:'');
+  }
+};
+})();
+</script>
+</body>
+</html>
