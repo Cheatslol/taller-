@@ -239,6 +239,9 @@
     .lb-filters select{flex:1;min-width:130px;background:var(--bg);color:var(--text);border:2px solid rgba(255,255,255,.12);border-radius:12px;padding:.55rem;font:600 .9rem Nunito,sans-serif}
     .lb-row{display:flex;gap:.7rem;align-items:center;padding:.6rem .8rem;border-radius:12px;font-weight:700}
     .lb-row:nth-child(odd){background:rgba(255,255,255,.04)}.lb-row.me{background:rgba(108,92,231,.3)}
+    .fb-row{margin:.9rem 0}.fb-top{display:flex;justify-content:space-between;font-weight:800;margin-bottom:.3rem}
+    .fb-bar{height:16px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden}.fb-bar i{display:block;height:100%;border-radius:99px;transition:width .5s}
+    .fb-row small,.lb-note{color:var(--muted);font-size:.82rem}.lb-note{margin-bottom:.4rem}
     .lb-row .n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lb-row .s{color:var(--accent2)}
   </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -254,7 +257,7 @@ window.FIREBASE_CONFIG={apiKey:"AIzaSyAVuKn3OKNVgaxj6164Wp7qMOQHb-jRDXE",authDom
 
   <header>
     <div class="logo">Taller de Matemáticas</div>
-    <p class="subtitle">Operaciones · Potencias · Raíces · f(x) · Función Afín</p>
+    <p class="subtitle">Operaciones · Divisiones · Potencias · Raíces · f(x) · Función Afín</p>
     <p class="subtitle" style="margin-top:.15rem;font-weight:700;background:linear-gradient(135deg,#fd79a8,#fdcb6e,#00cec9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Javiera Oyarzun la goat 🐐</p>
   </header>
   <div id="modebar">
@@ -314,6 +317,12 @@ window.FIREBASE_CONFIG={apiKey:"AIzaSyAVuKn3OKNVgaxj6164Wp7qMOQHb-jRDXE",authDom
       <p>Completa la tabla x/y, toca el plano para ubicar los puntos y comprueba la recta.</p>
       <span class="badge">Tabla · Gráfico</span>
     </div>
+    <div class="game-card" onclick="startGame('div')">
+      <span class="icon">➗</span>
+      <h3>Divisiones</h3>
+      <p>Cocientes exactos, residuos y divisiones con decimales. De fácil a difícil.</p>
+      <span class="badge">5 niveles</span>
+    </div>
   </div>
 
   <!-- OPERACIONES -->
@@ -333,6 +342,26 @@ window.FIREBASE_CONFIG={apiKey:"AIzaSyAVuKn3OKNVgaxj6164Wp7qMOQHb-jRDXE",authDom
       <div class="equation" id="ops-eq">?</div>
       <div class="options" id="ops-options"></div>
       <div class="feedback" id="ops-feedback"></div>
+    </div>
+  </div>
+
+  <!-- DIVISIONES -->
+  <div id="screen-ops" class="screen">
+    <div class="top-bar">
+      <button class="btn btn-back" onclick="backToMenu()">← Menú</button>
+      <div class="stats">
+        <div class="stat">Nivel <span id="div-level">1</span></div>
+        <div class="stat">Puntos <span id="div-score">0</span></div>
+        <div class="stat">Racha <span id="div-streak">0</span></div>
+      </div>
+      <div class="timer-ring" id="div-timer"><span>15</span></div>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" id="div-progress"></div></div>
+    <div class="level-select" id="div-levels"></div>
+    <div class="question-box">
+      <div class="equation" id="div-eq">?</div>
+      <div class="options" id="div-options"></div>
+      <div class="feedback" id="div-feedback"></div>
     </div>
   </div>
 
@@ -469,8 +498,10 @@ window.FIREBASE_CONFIG={apiKey:"AIzaSyAVuKn3OKNVgaxj6164Wp7qMOQHb-jRDXE",authDom
       <div class="stat" id="lb-status"></div>
     </div>
     <div class="question-box" style="text-align:left">
-      <div class="lb-filters"><select id="lb-game" onchange="renderBoard()"></select><select id="lb-mode" onchange="renderBoard()"></select></div>
+      <div class="chips" style="margin-bottom:1rem"><button class="chip active" id="lb-t1" onclick="lbTab(1)">🏆 Puntajes</button><button class="chip" id="lb-t2" onclick="lbTab(2)">📊 Dónde fallan</button></div>
+      <div class="lb-filters" id="lb-filt"><select id="lb-game" onchange="renderBoard()"></select><select id="lb-mode" onchange="renderBoard()"></select></div>
       <div id="lb-list"></div>
+      <div id="lb-fail" style="display:none"></div>
     </div>
   </div>
 
@@ -549,6 +580,7 @@ window.FIREBASE_CONFIG={apiKey:"AIzaSyAVuKn3OKNVgaxj6164Wp7qMOQHb-jRDXE",authDom
       if (id === 'seq') initSeq();
       if (id === 'mem') initMemory();
       if (id === 'cmp') initCmp();
+      if (id === 'div') initDiv();
     }
 
     let timers = [];
@@ -1269,19 +1301,115 @@ window.FIREBASE_CONFIG={apiKey:"AIzaSyAVuKn3OKNVgaxj6164Wp7qMOQHb-jRDXE",authDom
       }
       setTimeout(nextCmp, 1100);
     }
+
+    // ========== DIVISIONES ==========
+    let dv = { level: 1, score: 0, streak: 0, correct: 0, timeLeft: 15, timer: null, answered: false };
+    function initDiv() {
+      dv = { level: 1, score: 0, streak: 0, correct: 0, timeLeft: 15, timer: null, answered: false };
+      updateDivUI();
+      buildLevelBtns('div-levels', 5, n => { dv.level = n; nextDiv(); });
+      nextDiv();
+    }
+    function updateDivUI() {
+      $('div-level').textContent = dv.level;
+      $('div-score').textContent = dv.score;
+      $('div-streak').textContent = dv.streak;
+      $('div-progress').style.width = Math.min(100, (dv.correct / 10) * 100) + '%';
+    }
+    function genDiv(l) {
+      const c = v => String(v).replace('.', ',');
+      let b, q, r;
+      if (l === 1) { b = rand(2, 5); q = rand(2, 9); }
+      else if (l === 2) { b = rand(2, 9); q = rand(2, 12); }
+      else if (l === 3) { b = rand(6, 12); q = rand(6, 15); }
+      else if (l === 4) {
+        b = rand(3, 9); q = rand(3, 12); r = rand(1, b - 1);
+        return Math.random() < .5 ? { display: `Cociente de ${b*q+r} ÷ ${b}`, ans: q } : { display: `Residuo de ${b*q+r} ÷ ${b}`, ans: r };
+      }
+      else { b = rand(2, 9); q = rand(2, 12); return { display: `${c(b*q/10)} ÷ ${c(b/10)}`, ans: q }; }
+      return { display: `${b*q} ÷ ${b}`, ans: q };
+    }
+    function nextDiv() {
+      clearAllTimers();
+      dv.answered = false;
+      const eq = genDiv(dv.level);
+      dv.current = eq;
+      const el = $('div-eq');
+      el.textContent = eq.display + ' = ?';
+      el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+      const opts = new Set([eq.ans]);
+      while (opts.size < 4) {
+        const d = rand(1, Math.max(4, Math.floor(eq.ans * 0.25) + 1));
+        const w = eq.ans + (Math.random() > 0.5 ? d : -d);
+        if (w >= 0) opts.add(w);
+      }
+      const cont = $('div-options'); cont.innerHTML = '';
+      shuffle([...opts]).forEach(o => {
+        const btn = document.createElement('button');
+        btn.className = 'opt-btn'; btn.textContent = o;
+        btn.onclick = () => answerDiv(o, btn);
+        cont.appendChild(btn);
+      });
+      $('div-feedback').textContent = ''; $('div-feedback').className = 'feedback';
+      const maxT = dv.level <= 2 ? 15 : 12;
+      dv.timeLeft = maxT;
+      updateTimerRing('div-timer', dv.timeLeft, maxT);
+      dv.timer = setInterval(() => {
+        dv.timeLeft--;
+        updateTimerRing('div-timer', dv.timeLeft, maxT);
+        if (dv.timeLeft <= 0) {
+          clearInterval(dv.timer);
+          if (!dv.answered) {
+            dv.streak = 0;
+            $('div-feedback').textContent = `¡Tiempo! Era ${eq.ans}`;
+            $('div-feedback').className = 'feedback bad';
+            updateDivUI();
+            setTimeout(nextDiv, 1300);
+          }
+        }
+      }, 1000);
+      timers.push(dv.timer);
+    }
+    function answerDiv(val, btn) {
+      if (dv.answered) return;
+      dv.answered = true; clearInterval(dv.timer);
+      const ok = val === dv.current.ans;
+      document.querySelectorAll('#div-options .opt-btn').forEach(b => {
+        b.style.pointerEvents = 'none';
+        if (+b.textContent === dv.current.ans) b.classList.add('correct');
+      });
+      if (!ok) btn.classList.add('wrong');
+      if (ok) {
+        dv.score += 12 + dv.streak * 3 + dv.level * 3;
+        dv.streak++; dv.correct++;
+        $('div-feedback').textContent = ['¡Excelente!','¡Genial!','¡Correcto!','¡Imparable!'][rand(0,3)];
+        $('div-feedback').className = 'feedback good';
+        confettiBurst(window.innerWidth/2, window.innerHeight*0.35);
+      } else {
+        dv.streak = 0;
+        $('div-feedback').textContent = `Era ${dv.current.ans}`;
+        $('div-feedback').className = 'feedback bad';
+      }
+      updateDivUI();
+      if (dv.correct > 0 && dv.correct % 8 === 0 && dv.level < 5) {
+        dv.level++;
+        document.querySelectorAll('#div-levels .level-btn').forEach((b,i) => b.classList.toggle('active', i+1 === dv.level));
+      }
+      setTimeout(nextDiv, 1200);
+    }
   </script>
 <script>
 (()=>{
-const GAMES={ops:'Operaciones',func:'Funciones f(x)',pow:'Potencias y raíces',seq:'Secuencias',cmp:'Mayor, menor o igual',plane:'Plano cartesiano'};
+const GAMES={ops:'Operaciones',func:'Funciones f(x)',pow:'Potencias y raíces',seq:'Secuencias',cmp:'Mayor, menor o igual',plane:'Plano cartesiano',div:'Divisiones'};
 const MODES={clock:'⏱ Contra reloj',relaxed:'😌 Sin presión',classic:'🎯 Clásico'};
 const pl={level:1,score:0,streak:0,correct:0};
-const SC={ops:()=>ops.score,func:()=>func.score,pow:()=>pow.score,seq:()=>seq.score,cmp:()=>cmp.score,plane:()=>pl.score};
-let mode='classic',cur=null,fin=false,clk=null,left=60,DB=null,U=null,me=null,uid=null,rows=[],P={},acct=null,accDoc=null,qn=0;
+const SC={ops:()=>ops.score,func:()=>func.score,pow:()=>pow.score,seq:()=>seq.score,cmp:()=>cmp.score,plane:()=>pl.score,div:()=>dv.score};
+let mode='classic',cur=null,fin=false,clk=null,left=60,DB=null,U=null,me=null,uid=null,rows=[],P={},acct=null,accDoc=null,qn=0,tab=1,rs={n:0,ok:0};
 
 window.setMode=m=>{mode=m;document.querySelectorAll('#modebar .chip[data-m]').forEach(c=>c.classList.toggle('active',c.dataset.m===m));};
 
-const MAXLV={ops:6,func:5,pow:5,seq:5,cmp:5,plane:3};
-const GM={ops:['ops',()=>ops,()=>updateOpsUI()],func:['func',()=>func,()=>updateFuncUI()],pow:['pow',()=>pow,()=>updatePowUI()],seq:['seq',()=>seq,()=>updateSeqUI()],cmp:['cmp',()=>cmp,()=>updateCmpUI()],plane:['pl',()=>pl,()=>updPl()]};
+const MAXLV={ops:6,func:5,pow:5,seq:5,cmp:5,plane:3,div:5};
+const GM={ops:['ops',()=>ops,()=>updateOpsUI()],func:['func',()=>func,()=>updateFuncUI()],pow:['pow',()=>pow,()=>updatePowUI()],seq:['seq',()=>seq,()=>updateSeqUI()],cmp:['cmp',()=>cmp,()=>updateCmpUI()],plane:['pl',()=>pl,()=>updPl()],div:['div',()=>dv,()=>updateDivUI()]};
 function gate(k){
   if(mode!=='classic'||cur!==k)return true;
   if(qn>=50||SC[k]()>=1500){window.finishRound();return false;}
@@ -1290,7 +1418,7 @@ function gate(k){
   return true;
 }
 // Sin presión / contra reloj: se quita el temporizador por pregunta
-['ops','func','pow','cmp','seq'].forEach(k=>{
+['ops','func','pow','cmp','seq','div'].forEach(k=>{
   const n='next'+k[0].toUpperCase()+k.slice(1),f=window[n];
   window[n]=function(){if(!gate(k))return;f();
     if(mode!=='classic'&&cur===k){clearAllTimers();syncTimerRing();}};
@@ -1340,7 +1468,7 @@ function startRound(){
 
 const sg=window.startGame,bm=window.backToMenu;
 window.startGame=id=>{
-  $('modebar').style.display='none';cur=id;fin=false;qn=0;resetRound();
+  $('modebar').style.display='none';cur=id;fin=false;qn=0;rs={n:0,ok:0};resetRound();
   if(id==='board'||id==='plane'){
     $('menu').style.display='none';
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -1353,7 +1481,7 @@ window.startGame=id=>{
 };
 window.backToMenu=()=>{resetRound();cur=null;bm();$('modebar').style.display='flex';};
 window.again=()=>startGame(cur);
-window.viewRank=()=>{const g=cur,m=mode;startGame('board');$('lb-game').value=g;$('lb-mode').value=m;renderBoard();};
+window.viewRank=()=>{tab=1;syncTabs();const g=cur,m=mode;startGame('board');$('lb-game').value=g;$('lb-mode').value=m;renderBoard();};
 
 async function saveScore(g,m,s){
   if(!DB||!uid||!acct)return '🔒 Inicia sesión para guardar tu puntaje.';
@@ -1376,6 +1504,37 @@ window.finishRound=async()=>{
 };
 
 // ---------- Ranking ----------
+function syncTabs(){$('lb-t1').classList.toggle('active',tab===1);$('lb-t2').classList.toggle('active',tab===2);}
+window.lbTab=t=>{tab=t;syncTabs();renderBoard();};
+// Dónde fallan: promedio de aciertos por tema, sin nombres (cada jugador pesa igual)
+function renderFail(){
+  const box=$('lb-fail');box.textContent='';
+  if(!DB){box.textContent='Inicia sesión para ver las estadísticas.';return;}
+  const L=Object.keys(GAMES).map(k=>{
+    const a=rows.filter(r=>(r.d['st_'+k+'_n']||0)>=5).map(r=>r.d['st_'+k+'_ok']/r.d['st_'+k+'_n']);
+    return {k,n:a.length,p:a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length*100):null};
+  }).filter(x=>x.p!==null).sort((a,b)=>b.p-a.p);
+  if(!L.length){box.textContent='Aún no hay datos. Juega unas rondas y vuelve.';return;}
+  const h=document.createElement('p');h.className='lb-note';h.textContent='Promedio de aciertos del grupo por tema, de mejor a más flojo. Sin nombres.';box.appendChild(h);
+  L.forEach((x,i)=>{
+    const r=document.createElement('div');r.className='fb-row';
+    const tag=L.length>1?(i===0?' 🏅':i===L.length-1?' ⚠️':''):'';
+    r.innerHTML=`<div class="fb-top"><span>${GAMES[x.k]}${tag}</span><b>${x.p}%</b></div><div class="fb-bar"><i style="width:${x.p}%;background:hsl(${Math.round(x.p*1.2)},65%,50%)"></i></div><small>${x.n} jugador${x.n>1?'es':''}</small>`;
+    box.appendChild(r);
+  });
+}
+async function saveStats(k,s){
+  if(!DB||!uid||!acct||!s.n)return;
+  const F=firebase.firestore.FieldValue;
+  try{await DB.doc('scores/'+uid).set({['st_'+k+'_n']:F.increment(s.n),['st_'+k+'_ok']:F.increment(s.ok)},{merge:true});}catch(e){}
+}
+// Conteo de aciertos por respuesta
+['ops','func','pow','seq','cmp','div'].forEach(k=>{
+  const n='answer'+k[0].toUpperCase()+k.slice(1),f=window[n];
+  window[n]=function(...a){const b=SC[k](),o=f.apply(this,a);if(cur===k&&!fin){rs.n++;if(SC[k]()>b)rs.ok++;}return o;};
+});
+const fr=window.finishRound;
+window.finishRound=async()=>{if(fin||!SC[cur])return;const k=cur,s=rs;await fr();saveStats(k,s);};
 function initBoard(){
   const g=$('lb-game');
   if(!g.options.length){
@@ -1386,6 +1545,8 @@ function initBoard(){
 }
 window.renderBoard=async()=>{
   $('lb-status').textContent=acct?'👤 '+acct.name:'🔒 Sin sesión';
+  $('lb-filt').style.display=$('lb-list').style.display=tab===1?'':'none';$('lb-fail').style.display=tab===2?'':'none';
+  if(tab===2)return renderFail();
   const box=$('lb-list');box.textContent='';
   if(!DB){box.textContent='Inicia sesión para ver el ranking.';return;}
   const key=$('lb-game').value+'_'+$('lb-mode').value;
@@ -1538,6 +1699,8 @@ window.checkPlane=()=>{
     fb.textContent=`Tabla ${t}/5 · Plano ${good}/5`+(extra?` · ${extra} punto(s) de más`:'');
   }
 };
+const cp=window.checkPlane;
+window.checkPlane=()=>{if(P.done||cur!=='plane')return cp();const b=pl.score;cp();rs.n++;if(pl.score>b)rs.ok++;};
 })();
 </script>
 </body>
