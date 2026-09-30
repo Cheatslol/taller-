@@ -242,6 +242,14 @@
     .fb-row{margin:.9rem 0}.fb-top{display:flex;justify-content:space-between;font-weight:800;margin-bottom:.3rem}
     .fb-bar{height:16px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden}.fb-bar i{display:block;height:100%;border-radius:99px;transition:width .5s}
     .fb-row small,.lb-note{color:var(--muted);font-size:.82rem}.lb-note{margin-bottom:.4rem}
+    .pf-card{background:var(--card);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:.9rem;box-shadow:var(--shadow)}
+    .pf-card h4{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;margin-bottom:.5rem;overflow:hidden;text-overflow:ellipsis}
+    .pf-sum{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.6rem}
+    .pf-tag{font-size:.8rem;font-weight:800;padding:.2rem .6rem;border-radius:999px}
+    .pf-tag.g{background:rgba(0,184,148,.22);color:#55efc4}.pf-tag.b{background:rgba(225,112,85,.22);color:#fab1a0}
+    .pf-t{display:flex;align-items:center;gap:.6rem;font-size:.85rem;font-weight:700;margin:.25rem 0}
+    .pf-t span:first-child{width:9.5em;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .pf-t .fb-bar{flex:1;height:10px}.pf-t b{width:3.2em;text-align:right}
     .lb-row .n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lb-row .s{color:var(--accent2)}
   </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -258,7 +266,6 @@ window.FIREBASE_CONFIG={apiKey:"AIzaSyAVuKn3OKNVgaxj6164Wp7qMOQHb-jRDXE",authDom
   <header>
     <div class="logo">Taller de Matemáticas</div>
     <p class="subtitle">Operaciones · Divisiones · Potencias · Raíces · f(x) · Función Afín</p>
-    <p class="subtitle" style="margin-top:.15rem;font-weight:700;background:linear-gradient(135deg,#fd79a8,#fdcb6e,#00cec9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Javiera Oyarzun la goat 🐐</p>
   </header>
   <div id="modebar">
     <div class="chips">
@@ -268,6 +275,7 @@ window.FIREBASE_CONFIG={apiKey:"AIzaSyAVuKn3OKNVgaxj6164Wp7qMOQHb-jRDXE",authDom
     </div>
     <div class="chips">
       <button class="chip" onclick="startGame('board')">🏆 Ranking</button>
+      <button class="chip" onclick="openProfe()">👩‍🏫 Profe</button>
       <span class="chip acct" id="acct">🔒 Sin sesión</span>
       <button class="chip" id="del" style="display:none" onclick="delAcct()">🗑 Eliminar cuenta</button>
     </div>
@@ -278,49 +286,41 @@ window.FIREBASE_CONFIG={apiKey:"AIzaSyAVuKn3OKNVgaxj6164Wp7qMOQHb-jRDXE",authDom
     <div class="game-card" onclick="startGame('ops')">
       <span class="icon">🧮</span>
       <h3>Operaciones Avanzadas</h3>
-      <p>+ − × ÷ · potencias · raíces. Todos los niveles con dificultad creciente.</p>
       <span class="badge">6 niveles</span>
     </div>
     <div class="game-card" onclick="startGame('func')">
       <span class="icon">📐</span>
       <h3>Funciones f(x) y Afín</h3>
-      <p>Evalúa f(x), reconoce la función afín y = mx + b. Pendiente e intercepto.</p>
       <span class="badge">f(x) · Afín</span>
     </div>
     <div class="game-card" onclick="startGame('pow')">
       <span class="icon">⚡</span>
       <h3>Potencias y Raíces</h3>
-      <p>Calcula potencias, raíces cuadradas y cúbicas. Entrena cálculo mental.</p>
       <span class="badge">aⁿ · √x</span>
     </div>
     <div class="game-card" onclick="startGame('seq')">
       <span class="icon">🔢</span>
       <h3>Secuencias Numéricas</h3>
-      <p>Descubre el patrón y completa el número que falta.</p>
       <span class="badge">Patrones</span>
     </div>
     <div class="game-card" onclick="startGame('mem')">
       <span class="icon">🃏</span>
       <h3>Memoria Matemática</h3>
-      <p>Empareja operación con resultado (incluye potencias).</p>
       <span class="badge">Parejas</span>
     </div>
     <div class="game-card" onclick="startGame('cmp')">
       <span class="icon">⚖️</span>
       <h3>Mayor, Menor o Igual</h3>
-      <p>Compara números, potencias y expresiones.</p>
       <span class="badge">Comparación</span>
     </div>
     <div class="game-card" onclick="startGame('plane')">
       <span class="icon">📈</span>
       <h3>Plano cartesiano</h3>
-      <p>Completa la tabla x/y, toca el plano para ubicar los puntos y comprueba la recta.</p>
       <span class="badge">Tabla · Gráfico</span>
     </div>
     <div class="game-card" onclick="startGame('div')">
       <span class="icon">➗</span>
       <h3>Divisiones</h3>
-      <p>Cocientes exactos, residuos y divisiones con decimales. De fácil a difícil.</p>
       <span class="badge">5 niveles</span>
     </div>
   </div>
@@ -503,6 +503,20 @@ window.FIREBASE_CONFIG={apiKey:"AIzaSyAVuKn3OKNVgaxj6164Wp7qMOQHb-jRDXE",authDom
       <div id="lb-list"></div>
       <div id="lb-fail" style="display:none"></div>
     </div>
+  </div>
+
+  <div id="screen-prof" class="screen">
+    <div class="top-bar">
+      <button class="btn btn-back" onclick="backToMenu()">← Menú</button>
+      <button class="btn btn-back" id="pf-lock" style="display:none" onclick="profLock()">🔒 Bloquear</button>
+    </div>
+    <div class="question-box" id="pf-gate">
+      <h3 style="font-family:'Space Grotesk',sans-serif;margin-bottom:.8rem">👩‍🏫 Apartado Profe</h3>
+      <input id="pf-pw" type="password" placeholder="Contraseña" autocomplete="off" onkeydown="if(event.key==='Enter')profGo()" style="width:100%;max-width:300px;padding:.75rem .9rem;border-radius:12px;border:2px solid rgba(255,255,255,.12);background:var(--bg);color:var(--text);font:600 1rem Nunito,sans-serif">
+      <div class="feedback bad" id="pf-msg"></div>
+      <button class="btn btn-primary" onclick="profGo()">Entrar</button>
+    </div>
+    <div id="pf-list" style="display:none"></div>
   </div>
 
   <div id="authOverlay"><div class="aubox">
@@ -1404,7 +1418,7 @@ const GAMES={ops:'Operaciones',func:'Funciones f(x)',pow:'Potencias y raíces',s
 const MODES={clock:'⏱ Contra reloj',relaxed:'😌 Sin presión',classic:'🎯 Clásico'};
 const pl={level:1,score:0,streak:0,correct:0};
 const SC={ops:()=>ops.score,func:()=>func.score,pow:()=>pow.score,seq:()=>seq.score,cmp:()=>cmp.score,plane:()=>pl.score,div:()=>dv.score};
-let mode='classic',cur=null,fin=false,clk=null,left=60,DB=null,U=null,me=null,uid=null,rows=[],P={},acct=null,accDoc=null,qn=0,tab=1,rs={n:0,ok:0};
+let mode='classic',cur=null,fin=false,clk=null,left=60,DB=null,U=null,me=null,uid=null,rows=[],P={},acct=null,accDoc=null,qn=0,tab=1,profOK=false,rs={n:0,ok:0};
 
 window.setMode=m=>{mode=m;document.querySelectorAll('#modebar .chip[data-m]').forEach(c=>c.classList.toggle('active',c.dataset.m===m));};
 
@@ -1506,7 +1520,7 @@ window.finishRound=async()=>{
 // ---------- Ranking ----------
 function syncTabs(){$('lb-t1').classList.toggle('active',tab===1);$('lb-t2').classList.toggle('active',tab===2);}
 window.lbTab=t=>{tab=t;syncTabs();renderBoard();};
-// Dónde fallan promedio del peor al mejor
+// Dónde fallan: promedio de aciertos por tema, sin nombres (cada jugador pesa igual)
 function renderFail(){
   const box=$('lb-fail');box.textContent='';
   if(!DB){box.textContent='Inicia sesión para ver las estadísticas.';return;}
@@ -1514,8 +1528,7 @@ function renderFail(){
     const a=rows.filter(r=>(r.d['st_'+k+'_n']||0)>=5).map(r=>r.d['st_'+k+'_ok']/r.d['st_'+k+'_n']);
     return {k,n:a.length,p:a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length*100):null};
   }).filter(x=>x.p!==null).sort((a,b)=>b.p-a.p);
-  if(!L.length){box.textContent='Aún no hay datos. Juega unas rondas y vuelve.';return;}
-  const h=document.createElement('p');h.className='lb-note';h.textContent='Promedio de aciertos del grupo por tema, de mejor a más flojo. Sin nombres.';box.appendChild(h);
+  if(!L.length){box.textContent='Aún no hay datos.';return;}
   L.forEach((x,i)=>{
     const r=document.createElement('div');r.className='fb-row';
     const tag=L.length>1?(i===0?' 🏅':i===L.length-1?' ⚠️':''):'';
@@ -1566,7 +1579,7 @@ window.renderBoard=async()=>{
     if(u){setAcct({name:u.displayName||'Jugador',email:u.email});$('authOverlay').style.display='none';}
     else{setAcct(null);authTab('login');$('authOverlay').style.display='flex';}
   });
-  if(DB)DB.collection('scores').limit(500).onSnapshot(s=>{rows=s.docs.map(d=>({id:d.id,d:d.data()}));if(cur==='board')renderBoard();},()=>{});
+  if(DB)DB.collection('scores').limit(500).onSnapshot(s=>{rows=s.docs.map(d=>({id:d.id,d:d.data()}));if(cur==='board')renderBoard();if(cur==='prof'&&profOK)renderProf();},()=>{});
 })();
 
 // ---------- Cuenta (Firebase) ----------
@@ -1699,6 +1712,57 @@ window.checkPlane=()=>{
     fb.textContent=`Tabla ${t}/5 · Plano ${good}/5`+(extra?` · ${extra} punto(s) de más`:'');
   }
 };
+// ---------- Apartado Profe ----------
+const PROF_PW='javieraoyarzun';
+window.openProfe=()=>{
+  $('modebar').style.display='none';cur='prof';resetRound();
+  $('menu').style.display='none';
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  $('screen-prof').classList.add('active');
+  profView();
+};
+function profView(){
+  $('pf-gate').style.display=profOK?'none':'';$('pf-list').style.display=profOK?'':'none';$('pf-lock').style.display=profOK?'':'none';
+  $('pf-pw').value='';$('pf-msg').textContent='';
+  if(profOK)renderProf();
+}
+window.profGo=()=>{
+  if($('pf-pw').value===PROF_PW){profOK=true;profView();}
+  else{$('pf-msg').textContent='Contraseña incorrecta.';$('pf-pw').value='';}
+};
+window.profLock=()=>{profOK=false;profView();};
+function renderProf(){
+  const box=$('pf-list');box.textContent='';
+  if(!profOK)return;
+  const P=rows.map(r=>{
+    const t=Object.keys(GAMES).map(k=>({k,n:r.d['st_'+k+'_n']||0,p:0})).filter(x=>x.n>=3);
+    t.forEach(x=>x.p=Math.round(r.d['st_'+x.k+'_ok']/x.n*100));
+    t.sort((a,b)=>b.p-a.p);
+    return {name:r.d.name||'Jugador',t};
+  }).filter(x=>x.t.length).sort((a,b)=>a.name.localeCompare(b.name,'es'));
+  if(!P.length){box.textContent='Aún no hay datos.';return;}
+  P.forEach(pl=>{
+    const c=document.createElement('div');c.className='pf-card';
+    const h=document.createElement('h4');h.textContent=pl.name;c.appendChild(h);
+    const sum=document.createElement('div');sum.className='pf-sum';
+    const best=pl.t[0],worst=pl.t[pl.t.length-1];
+    if(pl.t.length>1){
+      const g=document.createElement('span');g.className='pf-tag g';g.textContent='✅ Bien en: '+GAMES[best.k];
+      const b=document.createElement('span');b.className='pf-tag b';b.textContent='⚠️ Se equivoca en: '+GAMES[worst.k];
+      sum.append(g,b);
+    }else{
+      const g=document.createElement('span');g.className='pf-tag '+(best.p>=60?'g':'b');g.textContent=(best.p>=60?'✅ Bien en: ':'⚠️ Se equivoca en: ')+GAMES[best.k];sum.appendChild(g);
+    }
+    c.appendChild(sum);
+    pl.t.forEach(x=>{
+      const r=document.createElement('div');r.className='pf-t';
+      const a=document.createElement('span'),bar=document.createElement('div'),i=document.createElement('i'),v=document.createElement('b');
+      a.textContent=GAMES[x.k];bar.className='fb-bar';i.style.width=x.p+'%';i.style.background='hsl('+Math.round(x.p*1.2)+',65%,50%)';bar.appendChild(i);v.textContent=x.p+'%';
+      r.append(a,bar,v);c.appendChild(r);
+    });
+    box.appendChild(c);
+  });
+}
 const cp=window.checkPlane;
 window.checkPlane=()=>{if(P.done||cur!=='plane')return cp();const b=pl.score;cp();rs.n++;if(pl.score>b)rs.ok++;};
 })();
