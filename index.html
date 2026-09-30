@@ -1506,7 +1506,7 @@ window.finishRound=async()=>{
 // ---------- Ranking ----------
 function syncTabs(){$('lb-t1').classList.toggle('active',tab===1);$('lb-t2').classList.toggle('active',tab===2);}
 window.lbTab=t=>{tab=t;syncTabs();renderBoard();};
-// Dónde fallan: promedio de aciertos por tema, sin nombres (cada jugador pesa igual)
+// Dónde fallan promedio del peor al mejor
 function renderFail(){
   const box=$('lb-fail');box.textContent='';
   if(!DB){box.textContent='Inicia sesión para ver las estadísticas.';return;}
